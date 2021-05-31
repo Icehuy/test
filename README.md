@@ -17428,7 +17428,11 @@ table.insert(cors,sandbox(LocalScript886,function()
 	local IMG = script.Parent.Icon.IMG
 
 	local function onMouseEntered()
-		if script.Parent.Main.Visible == true
+		if script.Parent.Main.Visible == false then
+			IMG.ImageColor3 = Color3.fromRGB(158, 158, 158)
+			local function onButtonActivated()
+				if IMG.ImageColor3 ~= Color3.fromRGB(208, 208, 208) then
+					IMG.ImageColor3 = Color3.fromRGB(208, 208, 208)
 				end
 			end
 			local function onButtonActivated1()
