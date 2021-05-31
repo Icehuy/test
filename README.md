@@ -17377,7 +17377,7 @@ TextLabel881.TextWrapped = true
 Frame882.Name = "Other border"
 Frame882.Parent = Frame876
 Frame882.Position = UDim2.new(0, 0, 0, -3)
-Frame882.Visible = true
+Frame882.Visible = false
 Frame882.Size = UDim2.new(0, 166, 0, 3)
 Frame882.BackgroundColor = BrickColor.new("Dirt brown")
 Frame882.BackgroundColor3 = Color3.new(0.262745, 0.262745, 0.262745)
@@ -17428,7 +17428,7 @@ table.insert(cors,sandbox(LocalScript886,function()
 	local IMG = script.Parent.Icon.IMG
 
 	local function onMouseEntered()
-		if script.Parent.Main.Visible == false then
+		if script.Parent.Main.Visible == true then
 			IMG.ImageColor3 = Color3.fromRGB(158, 158, 158)
 			local function onButtonActivated()
 				if IMG.ImageColor3 ~= Color3.fromRGB(208, 208, 208) then
