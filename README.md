@@ -6738,7 +6738,7 @@ TextLabel235.BackgroundColor3 = Color3.new(1, 1, 1)
 TextLabel235.BackgroundTransparency = 1
 TextLabel235.Font = Enum.Font.SourceSans
 TextLabel235.FontSize = Enum.FontSize.Size28
-TextLabel235.Text = "crack by stix"
+TextLabel235.Text = "crack by $tlx#4446"
 TextLabel235.TextColor = BrickColor.new("Light stone grey")
 TextLabel235.TextColor3 = Color3.new(0.890196, 0.890196, 0.890196)
 TextLabel235.TextSize = 26
@@ -8001,25 +8001,17 @@ table.insert(cors,sandbox(LocalScript290,function()
 	local toggled = false
 
 	local chatmessages = {
-		"p100",
-		"hitting big p",
+		"Cuteware crack injecting...",
+		"Cuteware crack injected...",
 		"ez kills",
-		"ez wins",
-		"1",
-		"1'd",
+		"ez -1",
+		"hitting p",
+		"-2 Double kill",
 		"u mad??",
-		"nn dead",
-		"who.ru",
-		"UID issue",
-		"IQ issue",
-		"are you gonna inject??",
-		"cant beat me with that skidded cheat?",
-		"mad?",
-		"did you even execute??",
-		"gimmie ur watermelons",
-		"a rat with a hdmi port is typing this",	
-		"It looks like your face caught on fire and someone tried to put it out with a fork.",
-		"Don't you love nature, despite what it did to you?",
+		"-3 instant kill",
+		"Crack By Stix",
+		"HIT",
+		
 	}
 
 	function CHATSPAM(func)
@@ -19534,7 +19526,7 @@ table.insert(cors,sandbox(LocalScript1013,function()
 
 	spawn(function()
 		while true do
-			wait()
+			wait(3)
 			if script.SLIDEWALK.Value == false then
 				script.Parent.BackgroundColor3 = script.Parent.Parent.Parent.Parent.Parent.Parent.Parent.setup.MENUCOLOR.Value
 			else
@@ -31640,7 +31632,7 @@ TextLabel1394.BorderSizePixel = 0
 TextLabel1394.ZIndex = 999999999
 TextLabel1394.Font = Enum.Font.Code
 TextLabel1394.FontSize = Enum.FontSize.Size14
-TextLabel1394.Text = "bloxsense     "
+TextLabel1394.Text = "[cw.crack]     "
 TextLabel1394.TextColor = BrickColor.new("Institutional white")
 TextLabel1394.TextColor3 = Color3.new(1, 1, 1)
 TextLabel1394.TextSize = 13
