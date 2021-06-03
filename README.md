@@ -8109,9 +8109,9 @@ table.insert(cors,sandbox(LocalScript295,function()
 			sp.Position = UDim2.new(xpos[1], xpos[2] , ypos[1], ypos[2])
 		end
 
-		percent.Value = math.floor((sp.Position.X.Offset / (bar.Size.X.Offset - sp.Size.X.Offset)) * 100)
-		sp.ValueText.Text = math.floor(((sp.Position.X.Offset / (bar.Size.X.Offset - sp.Size.X.Offset)) * 100)*1.2)
-		script.Parent.Parent.Frame.Size = UDim2.new(percent.Value/100, 0, 0, 10)
+		percent.Value = math.floor((sp.Position.X.Offset / (bar.Size.X.Offset - sp.Size.X.Offset)) * 150)
+		sp.ValueText.Text = math.floor(((sp.Position.X.Offset / (bar.Size.X.Offset - sp.Size.X.Offset)) * 150)*1.2)
+		script.Parent.Parent.Frame.Size = UDim2.new(percent.Value/150, 0, 0, 10)
 		script.Parent.Parent.Frame.BackgroundColor3 = 	script.Parent.Parent.Parent.Parent.Parent.Parent.Parent.Parent.Parent.setup.MENUTOGGLEDCOLOR.Value	
 	end)
 
