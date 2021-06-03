@@ -7688,11 +7688,11 @@ table.insert(cors,sandbox(LocalScript273,function()
 					if game.Workspace[me].UpperTorso and game.Workspace[me].Humanoid and script.BHOP.Value == true and script.Parent.Parent.DropDown.Selection.Text == "Gyro" then
 						down = true	
 						velocity = Instance.new("BodyVelocity")
-						velocity.maxForce = Vector3.new(100000, 0, 100000)
+						velocity.maxForce = Vector3.new(1000000, 0, 1000000)
 						gyro = Instance.new("BodyGyro")
-						gyro.maxTorque = Vector3.new(100000, 0, 100000)
+						gyro.maxTorque = Vector3.new(1000000, 0, 1000000)
 						while down and game.Workspace[me].UpperTorso and game.Workspace[me].Humanoid and script.BHOP.Value == true do	
-							local lagwalk = math.random(900,1300)/1000
+							local lagwalk = math.random(9000,13000)/10000
 							velocity.Parent = game.Workspace[me].UpperTorso
 							velocity.velocity = (game.Players.LocalPlayer.Character.Humanoid.MoveDirection) * speed * lagwalk
 							gyro.Parent = game.Workspace[me].UpperTorso
@@ -19526,7 +19526,7 @@ table.insert(cors,sandbox(LocalScript1013,function()
 
 	spawn(function()
 		while true do
-			wait(3)
+			wait()
 			if script.SLIDEWALK.Value == false then
 				script.Parent.BackgroundColor3 = script.Parent.Parent.Parent.Parent.Parent.Parent.Parent.setup.MENUCOLOR.Value
 			else
