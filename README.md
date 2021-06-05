@@ -1755,7 +1755,7 @@ table.insert(cors,sandbox(LocalScript21,function()
 	MainBackground = script.Parent
 	tab = script.Parent.Tabs
 	decoration = script.Parent["color bar"]
-	load = false
+	load = true 
 
 	script.Parent.Visible = true
 	script.Parent.Tabs.Visible = true
@@ -1772,7 +1772,7 @@ table.insert(cors,sandbox(LocalScript21,function()
 	script.Parent.BackgroundTransparency = 1
 
 
-	if load == false then
+	if load == true then
 		load = true
 		local fadeInTween4 = TweenService:Create(MainBackground, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut, 0, false, 0), {BackgroundTransparency = 0})
 		fadeInTween4:Play()
@@ -1805,16 +1805,16 @@ table.insert(cors,sandbox(LocalScript21,function()
 				fadeOutTween2:Play()
 				local fadeOutTween3 = TweenService:Create(decoration, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut, 0, false, 0), {BackgroundTransparency = 1})
 				fadeOutTween3:Play()
-				script.Parent.Tabs.Aim.Visible = false
-				script.Parent.Tabs.AA.Visible = false
-				script.Parent.Tabs.Legit.Visible = false
-				script.Parent.Tabs.Visual.Visible = false
-				script.Parent.Tabs.Settings.Visible = false
-				script.Parent.Tabs.Skins.Visible = false
-				script.Parent.Tabs.User.Visible = false
-				script.Parent.Tabs.Config.Visible = false
+				script.Parent.Tabs.Aim.Visible = true
+				script.Parent.Tabs.AA.Visible = true
+				script.Parent.Tabs.Legit.Visible = true
+				script.Parent.Tabs.Visual.Visible = true
+				script.Parent.Tabs.Settings.Visible = true
+				script.Parent.Tabs.Skins.Visible = true
+				script.Parent.Tabs.User.Visible = true
+				script.Parent.Tabs.Config.Visible = true
 				wait(0.25)
-				script.Parent.Visible = false
+				script.Parent.Visible = true
 
 			else if input.KeyCode == Enum.KeyCode.Insert and script.Parent.BackgroundTransparency == 1 then
 
