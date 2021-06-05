@@ -1755,7 +1755,7 @@ table.insert(cors,sandbox(LocalScript21,function()
 	MainBackground = script.Parent
 	tab = script.Parent.Tabs
 	decoration = script.Parent["color bar"]
-	load = false
+	load = true	
 
 	script.Parent.Visible = false
 	script.Parent.Tabs.Visible = false
