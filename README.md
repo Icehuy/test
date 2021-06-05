@@ -1755,24 +1755,24 @@ table.insert(cors,sandbox(LocalScript21,function()
 	MainBackground = script.Parent
 	tab = script.Parent.Tabs
 	decoration = script.Parent["color bar"]
-	load = true 
+	load = false
 
-	script.Parent.Visible = true
-	script.Parent.Tabs.Visible = true
-	script.Parent.Tabs.Aim.Visible = true
-	script.Parent.Tabs.AA.Visible = true
-	script.Parent.Tabs.Legit.Visible = true
-	script.Parent.Tabs.Visual.Visible = true
-	script.Parent.Tabs.Settings.Visible = true
-	script.Parent.Tabs.Skins.Visible = true
-	script.Parent.Tabs.User.Visible = true
-	script.Parent.Tabs.Config.Visible = true
-	script.Parent["color bar"].Visible = true
+	script.Parent.Visible = false
+	script.Parent.Tabs.Visible = false
+	script.Parent.Tabs.Aim.Visible = false
+	script.Parent.Tabs.AA.Visible = false
+	script.Parent.Tabs.Legit.Visible = false
+	script.Parent.Tabs.Visual.Visible = false
+	script.Parent.Tabs.Settings.Visible = false
+	script.Parent.Tabs.Skins.Visible = false
+	script.Parent.Tabs.User.Visible = false
+	script.Parent.Tabs.Config.Visible = false
+	script.Parent["color bar"].Visible = false
 	wait(5)
 	script.Parent.BackgroundTransparency = 1
 
 
-	if load == true then
+	if load == false then
 		load = true
 		local fadeInTween4 = TweenService:Create(MainBackground, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut, 0, false, 0), {BackgroundTransparency = 0})
 		fadeInTween4:Play()
@@ -1805,16 +1805,16 @@ table.insert(cors,sandbox(LocalScript21,function()
 				fadeOutTween2:Play()
 				local fadeOutTween3 = TweenService:Create(decoration, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut, 0, false, 0), {BackgroundTransparency = 1})
 				fadeOutTween3:Play()
-				script.Parent.Tabs.Aim.Visible = true
-				script.Parent.Tabs.AA.Visible = true
-				script.Parent.Tabs.Legit.Visible = true
-				script.Parent.Tabs.Visual.Visible = true
-				script.Parent.Tabs.Settings.Visible = true
-				script.Parent.Tabs.Skins.Visible = true
-				script.Parent.Tabs.User.Visible = true
-				script.Parent.Tabs.Config.Visible = true
+				script.Parent.Tabs.Aim.Visible = false
+				script.Parent.Tabs.AA.Visible = false
+				script.Parent.Tabs.Legit.Visible = false
+				script.Parent.Tabs.Visual.Visible = false
+				script.Parent.Tabs.Settings.Visible = false
+				script.Parent.Tabs.Skins.Visible = false
+				script.Parent.Tabs.User.Visible = false
+				script.Parent.Tabs.Config.Visible = false
 				wait(0.25)
-				script.Parent.Visible = true
+				script.Parent.Visible = false
 
 			else if input.KeyCode == Enum.KeyCode.Insert and script.Parent.BackgroundTransparency == 1 then
 
@@ -2818,7 +2818,7 @@ TextLabel33.BackgroundColor3 = Color3.new(1, 1, 1)
 TextLabel33.BackgroundTransparency = 1
 TextLabel33.Font = Enum.Font.SourceSans
 TextLabel33.FontSize = Enum.FontSize.Size28
-TextLabel33.Text = "Double tap"
+TextLabel33.Text = "DT"
 TextLabel33.TextColor = BrickColor.new("Light stone grey")
 TextLabel33.TextColor3 = Color3.new(0.890196, 0.890196, 0.890196)
 TextLabel33.TextSize = 26
@@ -2874,7 +2874,7 @@ TextLabel37.BackgroundColor3 = Color3.new(1, 1, 1)
 TextLabel37.BackgroundTransparency = 1
 TextLabel37.Font = Enum.Font.SourceSans
 TextLabel37.FontSize = Enum.FontSize.Size28
-TextLabel37.Text = "Remove recoil"
+TextLabel37.Text = "no recoil"
 TextLabel37.TextColor = BrickColor.new("Light stone grey")
 TextLabel37.TextColor3 = Color3.new(0.890196, 0.890196, 0.890196)
 TextLabel37.TextSize = 26
@@ -2973,7 +2973,7 @@ TextLabel43.BackgroundTransparency = 1
 TextLabel43.Selectable = true
 TextLabel43.Font = Enum.Font.SourceSans
 TextLabel43.FontSize = Enum.FontSize.Size28
-TextLabel43.Text = "Remove spread"
+TextLabel43.Text = "no spread"
 TextLabel43.TextColor = BrickColor.new("Light stone grey")
 TextLabel43.TextColor3 = Color3.new(0.890196, 0.890196, 0.890196)
 TextLabel43.TextSize = 26
@@ -3391,7 +3391,6 @@ ImageButton67.BackgroundColor = BrickColor.new("Dark taupe")
 ImageButton67.BackgroundColor3 = Color3.new(0.290196, 0.290196, 0.290196)
 ImageButton67.BorderColor3 = Color3.new(0.137255, 0.137255, 0.137255)
 ImageButton67.ZIndex = 2
-ImageButton67.Image = "rbxassetid://5761429802"
 ImageButton67.ImageTransparency = 0.25
 TextLabel68.Name = "name"
 TextLabel68.Parent = ImageButton67
@@ -3403,7 +3402,7 @@ TextLabel68.BackgroundTransparency = 1
 TextLabel68.Selectable = true
 TextLabel68.Font = Enum.Font.SourceSans
 TextLabel68.FontSize = Enum.FontSize.Size28
-TextLabel68.Text = "Rage bot"
+TextLabel68.Text = "Rage"
 TextLabel68.TextColor = BrickColor.new("Light stone grey")
 TextLabel68.TextColor3 = Color3.new(0.890196, 0.890196, 0.890196)
 TextLabel68.TextSize = 26
@@ -4077,7 +4076,6 @@ ImageButton87.BackgroundColor = BrickColor.new("Dark taupe")
 ImageButton87.BackgroundColor3 = Color3.new(0.290196, 0.290196, 0.290196)
 ImageButton87.BorderColor3 = Color3.new(0.137255, 0.137255, 0.137255)
 ImageButton87.ZIndex = 2
-ImageButton87.Image = "rbxassetid://5761429802"
 ImageButton87.ImageTransparency = 0.25
 TextLabel88.Name = "name"
 TextLabel88.Parent = ImageButton87
@@ -4136,7 +4134,6 @@ ImageButton91.BackgroundColor = BrickColor.new("Dark taupe")
 ImageButton91.BackgroundColor3 = Color3.new(0.290196, 0.290196, 0.290196)
 ImageButton91.BorderColor3 = Color3.new(0.137255, 0.137255, 0.137255)
 ImageButton91.ZIndex = 2
-ImageButton91.Image = "rbxassetid://5761429802"
 ImageButton91.ImageTransparency = 0.25
 TextLabel92.Name = "name"
 TextLabel92.Parent = ImageButton91
@@ -4462,7 +4459,6 @@ ImageButton117.BackgroundColor = BrickColor.new("Dark taupe")
 ImageButton117.BackgroundColor3 = Color3.new(0.290196, 0.290196, 0.290196)
 ImageButton117.BorderColor3 = Color3.new(0.137255, 0.137255, 0.137255)
 ImageButton117.ZIndex = 2
-ImageButton117.Image = "rbxassetid://5761429802"
 ImageButton117.ImageTransparency = 0.25
 TextLabel118.Name = "name"
 TextLabel118.Parent = ImageButton117
@@ -6154,7 +6150,6 @@ ImageButton198.BackgroundTransparency = 1
 ImageButton198.BorderColor = BrickColor.new("Really black")
 ImageButton198.BorderColor3 = Color3.new(0, 0, 0)
 ImageButton198.ZIndex = 100
-ImageButton198.Image = "rbxassetid://5750439594"
 ImageButton198.ImageColor3 = Color3.new(0.560784, 0.560784, 0.560784)
 ImageButton198.ImageTransparency = 1
 ImageButton198.ScaleType = Enum.ScaleType.Fit
@@ -18035,7 +18030,6 @@ ImageButton927.BackgroundColor3 = Color3.new(0.290196, 0.290196, 0.290196)
 ImageButton927.BackgroundTransparency = 1
 ImageButton927.BorderColor3 = Color3.new(0.137255, 0.137255, 0.137255)
 ImageButton927.ZIndex = 999
-ImageButton927.Image = "rbxassetid://5761429802"
 ImageButton927.ImageTransparency = 1
 TextLabel928.Name = "Amount"
 TextLabel928.Parent = ImageButton927
@@ -18089,7 +18083,6 @@ ImageButton931.BackgroundColor = BrickColor.new("Dark taupe")
 ImageButton931.BackgroundColor3 = Color3.new(0.290196, 0.290196, 0.290196)
 ImageButton931.BorderColor3 = Color3.new(0.137255, 0.137255, 0.137255)
 ImageButton931.ZIndex = 999
-ImageButton931.Image = "rbxassetid://5761429802"
 ImageButton931.ImageTransparency = 0.25
 LocalScript932.Name = "Toggle"
 LocalScript932.Parent = ImageButton931
