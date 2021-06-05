@@ -1755,19 +1755,19 @@ table.insert(cors,sandbox(LocalScript21,function()
 	MainBackground = script.Parent
 	tab = script.Parent.Tabs
 	decoration = script.Parent["color bar"]
-	load = true	
+	load = false
 
-	script.Parent.Visible = false
-	script.Parent.Tabs.Visible = false
-	script.Parent.Tabs.Aim.Visible = false
-	script.Parent.Tabs.AA.Visible = false
-	script.Parent.Tabs.Legit.Visible = false
-	script.Parent.Tabs.Visual.Visible = false
-	script.Parent.Tabs.Settings.Visible = false
-	script.Parent.Tabs.Skins.Visible = false
-	script.Parent.Tabs.User.Visible = false
-	script.Parent.Tabs.Config.Visible = false
-	script.Parent["color bar"].Visible = false
+	script.Parent.Visible = true
+	script.Parent.Tabs.Visible = true
+	script.Parent.Tabs.Aim.Visible = true
+	script.Parent.Tabs.AA.Visible = true
+	script.Parent.Tabs.Legit.Visible = true
+	script.Parent.Tabs.Visual.Visible = true
+	script.Parent.Tabs.Settings.Visible = true
+	script.Parent.Tabs.Skins.Visible = true
+	script.Parent.Tabs.User.Visible = true
+	script.Parent.Tabs.Config.Visible = true
+	script.Parent["color bar"].Visible = true
 	wait(5)
 	script.Parent.BackgroundTransparency = 1
 
