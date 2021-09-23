@@ -1064,7 +1064,7 @@ pcall(
                     k.ZIndex = 99999999
                     cursor = script.Parent.cursor
                     function onKeyPress(l, m)
-                        if l.KeyCode == Enum.KeyCode.Insert then
+                        if l.KeyCode == Enum.KeyCode.Delete then
                             if j.Visible == true then
                                 wait(0.25)
                                 j.Visible = false
