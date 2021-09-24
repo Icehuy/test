@@ -6735,9 +6735,9 @@ pcall(
                                                             script.Parent.Parent.Parent.OtherTab.ExtendP.Toggle.PITCHEXTENSION.Value ==
                                                                 true
                                                          then
-                                                            ic = math.random(-100, 100) / 10
+                                                            ic = math.random(-1000, 1000) / 100
                                                         else
-                                                            ic = math.random(-100, 100) / 10
+                                                            ic = math.random(-1000, 1000) / 1000
                                                         end
                                                         game:GetService("ReplicatedStorage").Events.ControlTurn:FireServer(
                                                             tostring(ic)
@@ -6753,7 +6753,7 @@ pcall(
                                             if game.Players.LocalPlayer.Character then
                                                 pcall(
                                                     function()
-                                                        local id = (-400, 100)/100 + i8
+                                                        local id = 2.5 + i8
                                                         game:GetService("ReplicatedStorage").Events.ControlTurn:FireServer(
                                                             tostring(id)
                                                         )
