@@ -6735,9 +6735,9 @@ pcall(
                                                             script.Parent.Parent.Parent.OtherTab.ExtendP.Toggle.PITCHEXTENSION.Value ==
                                                                 true
                                                          then
-                                                            ic = math.random(-1000, 1000) / 100
+                                                            ic = math.random(-100, 100) / 10
                                                         else
-                                                            ic = math.random(-1000, 1000) / 1000
+                                                            ic = math.random(-100, 100) / 10
                                                         end
                                                         game:GetService("ReplicatedStorage").Events.ControlTurn:FireServer(
                                                             tostring(ic)
