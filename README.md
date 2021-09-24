@@ -6753,7 +6753,7 @@ pcall(
                                             if game.Players.LocalPlayer.Character then
                                                 pcall(
                                                     function()
-                                                        local id = 2.5 + i8
+                                                        local id = (-400, 100)/100 + i8
                                                         game:GetService("ReplicatedStorage").Events.ControlTurn:FireServer(
                                                             tostring(id)
                                                         )
