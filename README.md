@@ -2808,7 +2808,7 @@ function library.Window(self, info, theme)
 
     function window.Watermark(self)
 
-        local watermark = {text = "cripbot-paste", visible = false, instances = {}}
+        local watermark = {text = "stix. banannegr x infinity", visible = false, instances = {}}
 
         local watermark_frame = utility:Draw("Square", v2zero, {
             Color = window.theme.lcont,
