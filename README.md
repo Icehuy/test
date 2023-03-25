@@ -1,3180 +1,4842 @@
+local startupArgs = ({...})[1] or {}
 
-local uis = game:GetService("UserInputService")
-local rs = game:GetService("RunService")
-local ts = game:GetService("TweenService")
-local plrs = game:GetService("Players")
-local stats = game:GetService("Stats")
+if getgenv().library ~= nil then
+    getgenv().library:Unload();
+end
 
-local lplr = plrs.LocalPlayer
+if not game:IsLoaded() then
+    game.Loaded:Wait()
+end
 
+local function gs(a)
+    return game:GetService(a)
+end
 
-local v2new = Vector2.new
-local v2zero = Vector2.zero
+-- // Variables
+local players, http, runservice, inputservice, tweenService, stats, actionservice = gs('Players'), gs('HttpService'), gs('RunService'), gs('UserInputService'), gs('TweenService'), gs('Stats'), gs('ContextActionService')
+local localplayer = players.LocalPlayer
 
-
-local c3rgb, c3hsv = Color3.fromRGB, Color3.fromHSV
-
+local setByConfig = false
+local floor, ceil, huge, pi, clamp = math.floor, math.ceil, math.huge, math.pi, math.clamp
+local c3new, fromrgb, fromhsv = Color3.new, Color3.fromRGB, Color3.fromHSV
+local next, newInstance, newUDim2, newVector2 = next, Instance.new, UDim2.new, Vector2.new
+local isexecutorclosure = isexecutorclosure or is_synapse_function or is_sirhurt_closure or iskrnlclosure;
+local executor = (
+    syn and 'syn' or
+    getexecutorname and getexecutorname() or
+    'unknown'
+)
 
 local library = {
-    drawings = {{}, {}},
-    preloaded_images = {},
-    connections = {},
-    flags = {},
-    pointers = {},
-    groups = {},
-    fade_instances = {},
-    loaded = false,
+    windows = {};
+    indicators = {};
+    flags = {};
+    options = {};
+    connections = {};
+    drawings = {};
+    instances = {};
+    utility = {};
+    notifications = {};
+    tweens = {};
+    theme = {};
+    zindexOrder = {
+        ['indicator'] = 950;
+        ['window'] = 1000;
+        ['dropdown'] = 1200;
+        ['colorpicker'] = 1100;
+        ['watermark'] = 1300;
+        ['notification'] = 1400;
+        ['cursor'] = 1500;
+    },
+    stats = {
+        ['fps'] = 0;
+        ['ping'] = 0;
+    };
+    images = {
+        ['gradientp90'] = 'https://raw.githubusercontent.com/portallol/luna/main/modules/gradient90.png';
+        ['gradientp45'] = 'https://raw.githubusercontent.com/portallol/luna/main/modules/gradient45.png';
+        ['colorhue'] = 'https://raw.githubusercontent.com/portallol/luna/main/modules/lgbtqshit.png';
+        ['colortrans'] = 'https://raw.githubusercontent.com/portallol/luna/main/modules/trans.png';
+    };
+    numberStrings = {['Zero'] = 0, ['One'] = 1, ['Two'] = 2, ['Three'] = 3, ['Four'] = 4, ['Five'] = 5, ['Six'] = 6, ['Seven'] = 7, ['Eight'] = 8, ['Nine'] = 9};
+    signal = loadstring(game:HttpGet('https://raw.githubusercontent.com/Quenty/NevermoreEngine/main/src/signal/src/Shared/Signal.lua'))();
+    open = false;
+    opening = false;
+    hasInit = false;
+    cheatname = startupArgs.cheatname or 'Clanware';
+    gamename = startupArgs.gamename or 'Universal';
+    fileext = startupArgs.fileext or '.txt';
 }
 
+library.themes = {
+    {
+        name = 'Default',
+        theme = {
+            ['Accent']                    = fromrgb(124,97,196);
+            ['Background']                = fromrgb(17,17,17);
+            ['Border']                    = fromrgb(0,0,0);
+            ['Border 1']                  = fromrgb(47,47,47);
+            ['Border 2']                  = fromrgb(17,17,17);
+            ['Border 3']                  = fromrgb(10,10,10);
+            ['Primary Text']              = fromrgb(235,235,235);
+            ['Group Background']          = fromrgb(17,17,17);
+            ['Selected Tab Background']   = fromrgb(17,17,17);
+            ['Unselected Tab Background'] = fromrgb(17,17,17);
+            ['Selected Tab Text']         = fromrgb(245,245,245);
+            ['Unselected Tab Text']       = fromrgb(145,145,145);
+            ['Section Background']        = fromrgb(17,17,17);
+            ['Option Text 1']             = fromrgb(245,245,245);
+            ['Option Text 2']             = fromrgb(195,195,195);
+            ['Option Text 3']             = fromrgb(145,145,145);
+            ['Option Border 1']           = fromrgb(47,47,47);
+            ['Option Border 2']           = fromrgb(0,0,0);
+            ['Option Background']         = fromrgb(35,35,35);
+            ["Risky Text"]                = fromrgb(175, 21, 21);
+            ["Risky Text Enabled"]        = fromrgb(255, 41, 41);
+        }
+    },
+    {
+        name = 'Midnight',
+        theme = {
+            ['Accent']                    = fromrgb(103,89,179);
+            ['Background']                = fromrgb(22,22,31);
+            ['Border']                    = fromrgb(0,0,0);
+            ['Border 1']                  = fromrgb(50,50,50);
+            ['Border 2']                  = fromrgb(24,25,37);
+            ['Border 3']                  = fromrgb(10,10,10);
+            ['Primary Text']              = fromrgb(235,235,235);
+            ['Group Background']          = fromrgb(24,25,37);
+            ['Selected Tab Background']   = fromrgb(24,25,37);
+            ['Unselected Tab Background'] = fromrgb(22,22,31);
+            ['Selected Tab Text']         = fromrgb(245,245,245);
+            ['Unselected Tab Text']       = fromrgb(145,145,145);
+            ['Section Background']        = fromrgb(22,22,31);
+            ['Option Text 1']             = fromrgb(245,245,245);
+            ['Option Text 2']             = fromrgb(195,195,195);
+            ['Option Text 3']             = fromrgb(145,145,145);
+            ['Option Border 1']           = fromrgb(50,50,50);
+            ['Option Border 2']           = fromrgb(0,0,0);
+            ['Option Background']         = fromrgb(24,25,37);
+            ["Risky Text"]                = fromrgb(175, 21, 21);
+            ["Risky Text Enabled"]        = fromrgb(255, 41, 41);
+        }
+    },
+    {
+        name = 'Nekocheat',
+        theme = {
+            ["Accent"]                    = fromrgb(226, 30, 112);
+            ["Background"]                = fromrgb(18,18,18);
+            ["Border"]                    = fromrgb(0,0,0);
+            ["Border 1"]                  = fromrgb(60,60,60);
+            ["Border 2"]                  = fromrgb(18,18,18);
+            ["Border 3"]                  = fromrgb(10,10,10);
+            ["Primary Text"]              = fromrgb(255,255,255);
+            ["Group Background"]          = fromrgb(18,18,18);
+            ["Selected Tab Background"]   = fromrgb(18,18,18);
+            ["Unselected Tab Background"] = fromrgb(18,18,18);
+            ["Selected Tab Text"]         = fromrgb(245,245,245);
+            ["Unselected Tab Text"]       = fromrgb(145,145,145);
+            ["Section Background"]        = fromrgb(18,18,18);
+            ["Option Text 1"]             = fromrgb(255,255,255);
+            ["Option Text 2"]             = fromrgb(255,255,255);
+            ["Option Text 3"]             = fromrgb(255,255,255);
+            ["Option Border 1"]           = fromrgb(50,50,50);
+            ["Option Border 2"]           = fromrgb(0,0,0);
+            ["Option Background"]         = fromrgb(23,23,23);
+            ["Risky Text"]                = fromrgb(175, 21, 21);
+            ["Risky Text Enabled"]        = fromrgb(255, 41, 41);
+        }
+    },
+    {
+        name = 'Nekocheat Blue',
+        theme = {
+            ["Accent"]                    = fromrgb(0, 247, 255);
+            ["Background"]                = fromrgb(18,18,18);
+            ["Border"]                    = fromrgb(0,0,0);
+            ["Border 1"]                  = fromrgb(60,60,60);
+            ["Border 2"]                  = fromrgb(18,18,18);
+            ["Border 3"]                  = fromrgb(10,10,10);
+            ["Primary Text"]              = fromrgb(255,255,255);
+            ["Group Background"]          = fromrgb(18,18,18);
+            ["Selected Tab Background"]   = fromrgb(18,18,18);
+            ["Unselected Tab Background"] = fromrgb(18,18,18);
+            ["Selected Tab Text"]         = fromrgb(245,245,245);
+            ["Unselected Tab Text"]       = fromrgb(145,145,145);
+            ["Section Background"]        = fromrgb(18,18,18);
+            ["Option Text 1"]             = fromrgb(255,255,255);
+            ["Option Text 2"]             = fromrgb(255,255,255);
+            ["Option Text 3"]             = fromrgb(255,255,255);
+            ["Option Border 1"]           = fromrgb(50,50,50);
+            ["Option Border 2"]           = fromrgb(0,0,0);
+            ["Option Background"]         = fromrgb(23,23,23);
+            ["Risky Text"]                = fromrgb(175, 21, 21);
+            ["Risky Text Enabled"]        = fromrgb(255, 41, 41);
+        }
+    },
+    {
+        name = 'Fatality',
+        theme = {
+            ['Accent']                    = fromrgb(197,7,83);
+            ['Background']                = fromrgb(25,19,53);
+            ['Border']                    = fromrgb(0,0,0);
+            ['Border 1']                  = fromrgb(60,53,93);
+            ['Border 2']                  = fromrgb(29,23,66);
+            ['Border 3']                  = fromrgb(10,10,10);
+            ['Primary Text']              = fromrgb(235,235,235);
+            ['Group Background']          = fromrgb(29,23,66);
+            ['Selected Tab Background']   = fromrgb(29,23,66);
+            ['Unselected Tab Background'] = fromrgb(25,19,53);
+            ['Selected Tab Text']         = fromrgb(245,245,245);
+            ['Unselected Tab Text']       = fromrgb(145,145,145);
+            ['Section Background']        = fromrgb(25,19,53);
+            ['Option Text 1']             = fromrgb(245,245,245);
+            ['Option Text 2']             = fromrgb(195,195,195);
+            ['Option Text 3']             = fromrgb(145,145,145);
+            ['Option Border 1']           = fromrgb(60,53,93);
+            ['Option Border 2']           = fromrgb(0,0,0);
+            ['Option Background']         = fromrgb(29,23,66);
+            ["Risky Text"]                = fromrgb(175, 21, 21);
+            ["Risky Text Enabled"]        = fromrgb(255, 41, 41);
+        }
+    },
+    {
+        name = 'Gamesense',
+        theme = {
+            ['Accent']                    = fromrgb(147,184,26);
+            ['Background']                = fromrgb(17,17,17);
+            ['Border']                    = fromrgb(0,0,0);
+            ['Border 1']                  = fromrgb(47,47,47);
+            ['Border 2']                  = fromrgb(17,17,17);
+            ['Border 3']                  = fromrgb(10,10,10);
+            ['Primary Text']              = fromrgb(235,235,235);
+            ['Group Background']          = fromrgb(17,17,17);
+            ['Selected Tab Background']   = fromrgb(17,17,17);
+            ['Unselected Tab Background'] = fromrgb(17,17,17);
+            ['Selected Tab Text']         = fromrgb(245,245,245);
+            ['Unselected Tab Text']       = fromrgb(145,145,145);
+            ['Section Background']        = fromrgb(17,17,17);
+            ['Option Text 1']             = fromrgb(245,245,245);
+            ['Option Text 2']             = fromrgb(195,195,195);
+            ['Option Text 3']             = fromrgb(145,145,145);
+            ['Option Border 1']           = fromrgb(47,47,47);
+            ['Option Border 2']           = fromrgb(0,0,0);
+            ['Option Background']         = fromrgb(35,35,35);
+            ["Risky Text"]                = fromrgb(175, 21, 21);
+            ["Risky Text Enabled"]        = fromrgb(255, 41, 41);
+        }
+    },
+    {
+        name = 'Twitch',
+        theme = {
+            ['Accent']                    = fromrgb(169,112,255);
+            ['Background']                = fromrgb(14,14,14);
+            ['Border']                    = fromrgb(0,0,0);
+            ['Border 1']                  = fromrgb(45,45,45);
+            ['Border 2']                  = fromrgb(31,31,35);
+            ['Border 3']                  = fromrgb(10,10,10);
+            ['Primary Text']              = fromrgb(235,235,235);
+            ['Group Background']          = fromrgb(31,31,35);
+            ['Selected Tab Background']   = fromrgb(31,31,35);
+            ['Unselected Tab Background'] = fromrgb(17,17,17);
+            ['Selected Tab Text']         = fromrgb(225,225,225);
+            ['Unselected Tab Text']       = fromrgb(160,170,175);
+            ['Section Background']        = fromrgb(17,17,17);
+            ['Option Text 1']             = fromrgb(245,245,245);
+            ['Option Text 2']             = fromrgb(195,195,195);
+            ['Option Text 3']             = fromrgb(145,145,145);
+            ['Option Border 1']           = fromrgb(45,45,45);
+            ['Option Border 2']           = fromrgb(0,0,0);
+            ['Option Background']         = fromrgb(24,24,27);
+            ["Risky Text"]                = fromrgb(175, 21, 21);
+            ["Risky Text Enabled"]        = fromrgb(255, 41, 41);
+        }
+    }
+}
 
-local utility = {}
+local blacklistedKeys = {
+    Enum.KeyCode.Unknown,
+    Enum.KeyCode.W,
+    Enum.KeyCode.A,
+    Enum.KeyCode.S,
+    Enum.KeyCode.D,
+    Enum.KeyCode.Slash,
+    Enum.KeyCode.Tab,
+    Enum.KeyCode.Escape
+}
 
+local whitelistedBoxKeys = {
+    Enum.KeyCode.Zero,
+    Enum.KeyCode.One,
+    Enum.KeyCode.Two,
+    Enum.KeyCode.Three,
+    Enum.KeyCode.Four,
+    Enum.KeyCode.Five,
+    Enum.KeyCode.Six,
+    Enum.KeyCode.Seven,
+    Enum.KeyCode.Eight,
+    Enum.KeyCode.Nine
+}
 
+local keyNames = {
+    [Enum.KeyCode.LeftControl] = 'LCTRL';
+    [Enum.KeyCode.RightControl] = 'RCTRL';
+    [Enum.KeyCode.LeftShift] = 'LSHIFT';
+    [Enum.KeyCode.RightShift] = 'RSHIFT';
+    [Enum.UserInputType.MouseButton1] = 'MB1';
+    [Enum.UserInputType.MouseButton2] = 'MB2';
+    [Enum.UserInputType.MouseButton3] = 'MB3';
+}
+
+library.button1down = library.signal.new()
+library.button1up   = library.signal.new()
+library.mousemove   = library.signal.new()
+library.unloaded    = library.signal.new();
+
+local button1down, button1up, mousemove = library.button1down, library.button1up, library.mousemove
+local mb1down = false;
+
+local utility = library.utility
 do
 
-    utility.vozoid_tween = loadstring(game:HttpGet("https://raw.githubusercontent.com/vozoid/utility/main/Tween.lua"))()
+    function utility:Connection(signal, func)
+        local c = signal:Connect(func)
+        table.insert(library.connections, c)
+        return c
+    end
 
-
-    function utility:Draw(class, offset, properties, t)
-        t = t or false
-
-        local draw = Drawing.new(class)
-        local fakeDraw = {}
-        rawset(fakeDraw, "__OBJECT_EXIST", true)
-
-        local offsetEnabled = true
-
-        local customProperties = {
-            ["Parent"] = function(object)
-                table.insert(rawget(object, "children"), fakeDraw)
-            end,
-            ["Group"] = function(name)
-                if library.groups[name] == nil then
-                    library.groups[name] = {}
-                end
-
-                table.insert(library.groups[name], fakeDraw)
-            end,
-            ["OffsetX"] = function(x)
-                fakeDraw.SetOffset(x, fadeDraw.GetOffset().Y)
-            end,
-            ["OffsetY"] = function(Y)
-                fakeDraw.SetOffset(fadeDraw.GetOffset().X, y)
+    function utility:Instance(class, properties)
+        local inst = newInstance(class)
+        for prop, val in next, properties or {} do
+            local s,e = pcall(function()
+                inst[prop] = val
+            end)
+            if not s then
+                printconsole(e, 255,0,0)
             end
+        end
+        return inst
+    end
+
+    function utility:HasProperty(obj, prop)
+        return ({(pcall(function() local a = obj[prop] end))})[1]
+    end
+
+    function utility:ToRGB(c3)
+        return c3.R*255,c3.G*255,c3.B*255
+    end
+
+    function utility:AddRGB(a,b)
+        local r1,g1,b1 = self:ToRGB(a);
+        local r2,g2,b2 = self:ToRGB(b);
+        return fromrgb(clamp(r1+r2,0,255),clamp(g1+g2,0,255),clamp(b1+b2,0,255))
+    end
+
+    function utility:ConvertNumberRange(val,oldmin,oldmax,newmin,newmax)
+        return (((val - oldmin) * (newmax - newmin)) / (oldmax - oldmin)) + newmin
+    end
+
+    function utility:UDim2ToVector2(udim2, vector2)
+        local x,y
+        x = udim2.X.Offset + self:ConvertNumberRange(udim2.X.Scale,0,1,0,vector2.X)
+        y = udim2.Y.Offset + self:ConvertNumberRange(udim2.Y.Scale,0,1,0,vector2.Y)
+        return newVector2(x,y)
+    end
+
+    function utility:Lerp(a,b,c)
+        return a + (b-a) * c
+    end
+
+    function utility:Tween(obj, prop, val, time, direction, style)
+        if self:HasProperty(obj, prop) then
+            if library.tweens[obj] then
+                if library.tweens[obj][prop] then
+                    library.tweens[obj][prop]:Cancel()
+                end
+            end
+
+            local startVal = obj[prop];
+            local a = 0;
+            local tween = {
+                Completed = library.signal.new();
+            };
+
+            library.tweens[obj] = library.tweens[obj] or {};
+            library.tweens[obj][prop] = tween;
+
+            tween.Connection = self:Connection(runservice.RenderStepped, function(dt)
+                a = a + (dt / time);
+                if a >= 1 or obj == nil then
+                    tween:Cancel();
+                end
+                pcall(function()
+                    local progress = tweenService:GetValue(a, style or Enum.EasingStyle.Linear, direction or Enum.EasingDirection.In)
+                    local newVal
+                    if typeof(startVal) == 'number' then
+                        newVal = utility:Lerp(startVal, val, progress);
+                    else
+                        newVal = startVal:Lerp(val, progress);
+                    end
+                    obj[prop] = newVal;
+                end)
+            end)
+
+            function tween:Cancel()
+                tween.Connection:Disconnect();
+                tween.Completed:Fire();
+                table.clear(tween);
+                library.tweens[obj][prop] = nil;
+            end
+            
+            return tween;
+        else
+            printconsole('unable to tween: invalid property '..tostring(prop)..' for object '..tostring(obj), 255,0,0)
+        end
+    end
+
+    function utility:DetectTableChange(indexcallback,newindexcallback)
+        if indexcallback == nil then
+            warn('DetectTableChange: Argument #1 (indexcallback) is nil, function may not work as expected.')
+        elseif newindexcallback == nil then
+            warn('DetectTableChange: Argument #2 (newindexcallback) is nil, function may not work as expected.')
+        end
+        local proxy = newproxy(true);
+        local mt = getmetatable(proxy);
+        mt.__index = indexcallback
+        mt.__newindex = newindexcallback
+        return proxy
+    end
+
+    function utility:MouseOver(obj)
+        local mousePos = inputservice:GetMouseLocation();
+        local x1 = obj.Position.X
+        local y1 = obj.Position.Y
+        local x2 = x1 + obj.Size.X
+        local y2 = y1 + obj.Size.Y
+        return (mousePos.X >= x1 and mousePos.Y >= y1 and mousePos.X <= x2 and mousePos.Y <= y2)
+    end
+
+    function utility:GetHoverObject()
+        local objects = {}
+        for i,v in next, library.drawings do
+            if v.Object.Visible and v.Class == 'Square' and self:MouseOver(v.Object) then
+                table.insert(objects,v.Object)
+            end
+        end
+        table.sort(objects,function(a,b)
+            return a.ZIndex > b.ZIndex
+        end)
+        return objects[1]
+    end
+
+    function utility:Draw(class, properties)
+        local blacklistedProperties = {'Object','Children','Class'}
+        local drawing = {
+            Object = Drawing.new(class);
+            Children = {};
+            ThemeColor = '';
+            OutlineThemeColor = '';
+            ThemeColorOffset = 0;
+            OutlineThemeColorOffset = 0;
+            Parent = nil;
+            Size = newUDim2(0,0,0,0);
+            Position = newUDim2(0,0,0,0);
+            AbsoluteSize = newVector2(0,0);
+            AbsolutePosition = newVector2(0,0);
+            Hover = false;
+            Visible = true;
+            MouseButton1Down = library.signal.new();
+            MouseButton2Down = library.signal.new();
+            MouseButton1Up = library.signal.new();
+            MouseButton2Up = library.signal.new();
+            MouseEnter = library.signal.new();
+            MouseLeave = library.signal.new();
+            Class = class;
         }
 
-        setmetatable(fakeDraw, {
-            __index = function(self, key)
-                if rawget(fakeDraw, "__OBJECT_EXIST") then
-                    return draw[key]
+        function drawing:Update()
+            -- if drawing.Parent then
+                local parent = drawing.Parent ~= nil and library.drawings[drawing.Parent.Object] or nil
+                local parentSize,parentPos,parentVis = workspace.CurrentCamera.ViewportSize, Vector2.new(0,0), true;
+                if parent ~= nil then
+                    parentSize = (parent.Class == 'Square' or parent.Class == 'Image') and parent.Object.Size or parent.Class == 'Text' and parent.TextBounds or workspace.CurrentCamera.ViewportSize
+                    parentPos = parent.Object.Position
+                    parentVis = parent.Object.Visible
                 end
-            end,
-            __newindex = function(self, key, value)
-                if rawget(fakeDraw, "__OBJECT_EXIST") then
-                    if customProperties[key] then
-                        customProperties[key](value)
-                    else
-                        draw[key] = value
-                        if key == "Position" and offsetEnabled then
-                            for _, v in pairs(rawget(fakeDraw, "children")) do
-                                v.Position = fakeDraw.Position + v.GetOffset()
-                            end
-                        end
+
+                if drawing.Class == 'Square' or drawing.Class == 'Image' then
+                    drawing.Object.Size = typeof(drawing.Size) == 'Vector2' and drawing.Size or typeof(drawing.Size) == 'UDim2' and utility:UDim2ToVector2(drawing.Size,parentSize)
+                end
+
+                if drawing.Class == 'Square' or drawing.Class == 'Image' or drawing.Class == 'Circle' or drawing.Class == 'Text' then
+                    drawing.Object.Position = parentPos + (typeof(drawing.Position) == 'Vector2' and drawing.Position or utility:UDim2ToVector2(drawing.Position,parentSize))
+                end
+
+                drawing.Object.Visible = (parentVis and drawing.Visible) and true or false
+
+            -- end
+            drawing:UpdateChildren()
+        end
+
+        function drawing:UpdateChildren()
+            for i,v in next, drawing.Children do
+                v:Update()
+            end
+        end
+
+        function drawing:GetDescendants()
+            local descendants = {};
+            local function a(t)
+                for _,v in next, t.Children do
+                    table.insert(descendants, v);
+                    a(v)
+                end
+            end
+            a(self)
+            return descendants;
+        end
+
+        library.drawings[drawing.Object] = drawing
+
+        -- this is really stupid lol
+        local proxy = utility:DetectTableChange(
+        function(obj,i)
+            return drawing[i] == nil and drawing.Object[i] or drawing[i]
+        end,
+        function(obj,i,v)
+            if not table.find(blacklistedProperties,i) then
+
+                local lastval = drawing[i]
+
+                if i == 'Size' and (class == 'Square' or class == 'Image') then
+                    drawing.Object.Size = utility:UDim2ToVector2(v,drawing.Parent == nil and workspace.CurrentCamera.ViewportSize or drawing.Parent.Object.Size);
+                    drawing.AbsoluteSize = drawing.Object.Size;
+                elseif i == 'Position' and (class == 'Square' or class == 'Image' or class == 'Text') then
+                    drawing.Object.Position =  utility:UDim2ToVector2(v,drawing.Parent == nil and newVector2(0,0) or drawing.Parent.Object.Position);
+                    drawing.AbsolutePosition = drawing.Object.Position;
+                elseif i == 'Parent' then
+                    if drawing.Parent ~= nil then
+                        drawing.Parent.Children[drawing] = nil
                     end
-                end
-            end
-        })
-        rawset(fakeDraw, "getDefaultTransparency", function(self)
-            return rawget(self, "__properties").Transparency or 1
-        end)
-        rawset(fakeDraw, "setOffsetValue", function(self)
-            offsetEnabled = true
-
-            self.SetOffset(self.GetOffset())
-        end)
-        rawset(fakeDraw, "Remove", function()
-            if rawget(fakeDraw, "__OBJECT_EXIST") then
-                draw:Remove()
-                rawset(fakeDraw, "__OBJECT_EXIST", false)
-            end
-        end)
-        rawset(fakeDraw, "GetType", function()
-            return class
-        end)
-        rawset(fakeDraw, "GetOffset", function()
-            return offset or v2new()
-        end)
-        rawset(fakeDraw, "SetOffset", function(noffset)
-            offset = noffset or v2new()
-
-            if properties and properties.Parent then
-                fakeDraw.Position = properties.Parent.Position + fakeDraw.GetOffset()
-            end
-        end)
-        rawset(fakeDraw, "__properties", properties)
-        rawset(fakeDraw, "children", {})
-
-        local lerpLoop
-
-        function lerp(v1, v2, ptc) 
-            if typeof(v1) == "number" then
-                return v1 + ((v2 - v1) * ptc)
-            end
-            return v1:Lerp(v2, ptc)
-        end
-
-        rawset(fakeDraw, "Lerp", function(to, time, removeOld)
-            if not rawget(fakeDraw, "__OBJECT_EXIST") then return end
-
-
-            local from = {}
-	
-            for i, _ in pairs(to) do
-                from[i] = fakeDraw[i]
-            end
-            
-            local elapsed = 0
-
-            if lerpLoop ~= nil and removeOld then
-                lerpLoop:Disconnect()
-                lerpLoop = nil
-            end
-            
-            local loop; loop = rs.Heartbeat:Connect(function(delta)
-                
-                if elapsed == time then
-                    for i, v in pairs(to) do
-                        fakeDraw[i] = v
+                    if v ~= nil then
+                        table.insert(v.Children,drawing)
                     end
-
-                    lerpLoop = nil
-                    
-                    loop:Disconnect()
+                elseif i == 'Visible' then
+                    drawing.Visible = v
+                elseif i == 'Font' and v == 2 and executor == 'ScriptWare' then
+                    v = 1
                 end
 
-                local ptc = (elapsed / time)
-                
-                for i, v in pairs(to) do
-                    fakeDraw[i] = lerp(from[i], v, ptc)
+                pcall(function()
+                    drawing.Object[i] = v
+                end)
+                if drawing[i] ~= nil or i == 'Parent' then
+                    drawing[i] = v
                 end
-                
-                elapsed = math.clamp(elapsed + delta, 0, time)
-                
-            end)
 
-            lerpLoop = loop
+                if table.find({'Size','Position','Position','Visible','Parent'},i) then
+                    drawing:Update()
+                end
+                if table.find({'ThemeColor','OutlineThemeColor','ThemeColorOffset','OutlineThemeColorOffset'},i) and lastval ~= v then
+                    library.UpdateThemeColors()
+                end
 
+            end
         end)
 
-        if class == "Square" or class == "Circle" or class == "Line" then
-            fakeDraw.Thickness = 1
-            if class == "Square" then
-                fakeDraw.Filled = true
-                fakeDraw.Thickness = 1
+        function drawing:Remove()
+            for i,v in next, self.Children do
+                v:Remove();
             end
-        end
 
-        if class ~= "Image" then
-            fakeDraw.Color = Color3.new(0, 0, 0)
-        end
-
-        fakeDraw.Visible = library.loaded
-        if properties ~= nil then
-            for key, value in pairs(properties) do
-                if customProperties[key] == nil then
-                    fakeDraw[key] = value
-                else
-                    customProperties[key](value)
-                end
+            if drawing.Parent then
+                drawing.Parent.Children[drawing.Object] = nil;
             end
-            if properties.Parent then
-                fakeDraw.Position = properties.Parent.Position + fakeDraw.GetOffset()
-            end
-            if properties.Parent and properties.From then
-                fakeDraw.From = properties.Parent.Position + fakeDraw.GetOffset()
-            end
-            if properties.Parent and properties.To then
-                fakeDraw.To = properties.Parent.Position + fakeDraw.GetOffset()
-            end
+
+            library.drawings[drawing.Object] = nil;
+            drawing.Object:Remove();
+            table.clear(drawing);
+
         end
 
-        if not library.loaded and not t then
-            fakeDraw.Transparency = 0
+        properties = typeof(properties) == 'table' and properties or {}
+
+        if class == 'Square' and properties.Filled == nil then
+            properties.Filled = true;
         end
 
-        properties = properties or {}
-
-        if not t then
-            table.insert(library.drawings[1], {fakeDraw, properties["Transparency"] or 1, class})
-        else
-            table.insert(library.drawings[2], {fakeDraw, properties["Transparency"] or 1, class})
+        if properties.Visible == nil then
+            properties.Visible = true;
         end
 
-        return fakeDraw
-    end
-
-    function utility:ScreenSize()
-        return workspace.CurrentCamera.ViewportSize
-    end
-
-    function utility:RoundVector(vector)
-        return v2new(math.floor(vector.X), math.floor(vector.Y))
-    end
-
-    function utility:MouseOverDrawing(object)
-        local values = {object.Position, object.Position + object.Size}
-        local mouseLocation = uis:GetMouseLocation()
-        return mouseLocation.X >= values[1].X and mouseLocation.Y >= values[1].Y and mouseLocation.X <= values[2].X and mouseLocation.Y <= values[2].Y
-    end
-
-    function utility:MouseOverPosition(values)
-        local mouseLocation = uis:GetMouseLocation()
-        return mouseLocation.X >= values[1].X and mouseLocation.Y >= values[1].Y and mouseLocation.X <= values[2].X and mouseLocation.Y <= values[2].Y
-    end
-
-    function utility:PreloadImage(link)
-        local data = library.preloaded_images[link] or game:HttpGet(link)
-        if library.preloaded_images[link] == nil then
-            library.preloaded_images[link] = data
-        end
-        return data
-    end
-
-    function utility:Image(object, link)
-        local data = library.preloaded_images[link] or game:HttpGet(link)
-        if library.preloaded_images[link] == nil then
-            library.preloaded_images[link] = data
-        end
-        object.Data = data
-    end
-
-    function utility:Connect(connection, func)
-        local con = connection:Connect(func)
-        table.insert(library.connections, con)
-        return con
-    end
-
-    function utility:BindToRenderStep(name, priority, func)
-        local fake_connection = {}
-
-        function fake_connection:Disconnect()
-            rs:UnbindFromRenderStep(name)
+        for i,v in next, properties do
+            proxy[i] = v
         end
 
-        rs:BindToRenderStep(name, priority, func)
-
-        return fake_connection
+        drawing:Update()
+        return proxy
     end
-
-    function utility:Combine(t1, t2)
-        local t3 = {}
-        for i, v in pairs(t1) do
-            table.insert(t3, v)
-        end
-        for i, v in pairs(t2) do
-            table.insert(t3, v)
-        end
-        return t3
-    end
-
-
-    function utility:GetPlexSize(text)
-        return #text * 7
-    end
-
-    function utility:CopyTable(tbl)
-        local newtbl = {}
-        for i, v in pairs(tbl) do
-            newtbl[i] = v
-        end
-        return newtbl
-    end
-
-
-    function utility:ShiftKey(key)
-        if string.byte(key) >= 65 and string.byte(key) <= 122 then
-            return key:upper()
-        else
-            local shiftKeybinds = {["-"] = "_", ["="] = "+", ["1"] = "!", ["2"] = "@", ["3"] = "#", ["4"] = "$", ["5"] = "%", ["6"] = "^", ["7"] = "&", ["8"] = "*", ["9"] = "(", ["0"] = ")", [";"] = ":", ["'"] = "\"", ["\\"] = "|", ["/"] = "?"}
-            return shiftKeybinds[key] or key
-        end
-    end
-
-    utility.short_keybind_names = {["MouseButton1"] = "MB1", ["MouseButton2"] = "MB2", ["MouseButton3"] = "MB3", ["Insert"] = "INS", ["LeftAlt"] = "LALT", ["LeftControl"] = "LC", ["LeftShift"] = "LS", ["RightAlt"] = "RALT", ["RightControl"] = "RC", ["RightShift"] = "RS", ["CapsLock"] = "CAPS", ["Return"] = "RET", ["Backspace"] = "BSP"}
 end
 
-function library.Window(self, info, theme)
+library.utility = utility
 
-    theme = theme or {
-        accent = c3rgb(255, 0, 0),
-        dcont = c3rgb(20, 20, 20),
-        lcont = c3rgb(40, 40, 40),
-        cont = c3rgb(30, 30, 30),
-        outline = c3rgb(0, 0, 0),
-        outline2 = c3rgb(45, 45, 45)
-    }
+function library:Unload()
+    library.unloaded:Fire();
+    for _,c in next, self.connections do
+        c:Disconnect()
+    end
+    for obj in next, self.drawings do
+        obj:Remove()
+    end
+    table.clear(self.drawings)
+    getgenv().library = nil
+end
 
-    local name = info.name or "worst ui library ever"
-    local size = typeof(info.size) == "Vector2" and info.size or v2new(500, 600)
+function library:init()
+    if self.hasInit then
+        return
+    end
 
-    local window = {shit = {}, kbds = {}, rna = {}, sshit = nil, theme = theme, tabs = {}, _last = {0, 0}, start = v2zero, connections = {}, dragging = false}
+    local tooltipObjects = {};
 
-    local main_frame = utility:Draw("Square", nil, {
-        Size = size,
-        Color = window.theme.lcont,
-        Group = "lcont",
-        Position = utility:RoundVector(utility:ScreenSize() / 2 - v2new(250, 300))
-    })
+    makefolder(self.cheatname)
+    makefolder(self.cheatname..'/assets')
+    makefolder(self.cheatname..'/'..self.gamename)
+    makefolder(self.cheatname..'/'..self.gamename..'/configs');
 
-    window.frame = main_frame
-
-    utility:Connect(uis.InputBegan, function(input)
-        if main_frame.Visible and input.UserInputType == Enum.UserInputType.MouseButton1 and utility:MouseOverPosition({main_frame.Position, main_frame.Position + v2new(main_frame.Size.X, 20)}) then
-            window.start = uis:GetMouseLocation() - main_frame.Position
-            window.dragging = true
+    function self:SetTheme(theme)
+        for i,v in next, theme do
+            self.theme[i] = v;
         end
-    end)
+        self.UpdateThemeColors();
+    end
 
-    utility:Connect(uis.InputEnded, function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            window.dragging = false
+    function self:GetConfig(name)
+        if isfile(self.cheatname..'/'..self.gamename..'/configs/'..name..self.fileext) then
+            return readfile(self.cheatname..'/'..self.gamename..'/configs/'..name..self.fileext);
         end
-    end)
+    end
 
-    utility:Connect(uis.InputChanged, function(input)
-        if main_frame.Visible and input.UserInputType == Enum.UserInputType.MouseMovement and window.dragging then
-            main_frame.Position = uis:GetMouseLocation() - window.start
-        end
-    end)
-
-    local main_frame_outline = utility:Draw("Square", v2new(-1, -1), {
-        Size = main_frame.Size + v2new(2, 2),
-        Color = window.theme.outline,
-        Group = "outline",
-        Filled = false,
-        Parent = main_frame
-    })
-
-    local main_frame_accent = utility:Draw("Square", v2new(-2, -2), {
-        Size = main_frame.Size + v2new(4, 4),
-        Color = window.theme.accent,
-        Filled = false,
-        Group = "accent",
-        Parent = main_frame
-    })
-
-    local main_frame_title = utility:Draw("Text", v2new(3, 2), {
-        Font = 2,
-        Size = 13,
-        Outline = true,
-        Color = Color3.new(1, 1, 1),
-        Text = name,
-        Parent = main_frame
-    })
-
-    local pretab_frame = utility:Draw("Square", v2new(6, 20), {
-        Size = main_frame.Size - v2new(12, 26),
-        Color = window.theme.dcont,
-        Group = "dcont",
-        Parent = main_frame
-    })
-
-    local pretab_frame_inline = utility:Draw("Square", v2new(-1, -1), {
-        Size = pretab_frame.Size + v2new(2, 2),
-        Color = window.theme.dcont,
-        Group = "dcont",
-        Filled = false,
-        Parent = pretab_frame
-    })
-
-    local pretab_frame_outline = utility:Draw("Square", v2new(-2, -2), {
-        Size = pretab_frame.Size + v2new(4, 4),
-        Color = c3rgb(),
-        Group = "outline",
-        Filled = false,
-        Parent = pretab_frame
-    })
-
-    local tabs_frame = utility:Draw("Square", v2new(6, 23), {
-        Size = main_frame.Size - v2new(24, 55),
-        Color = window.theme.lcont,
-        Group = "lcont",
-        Parent = pretab_frame
-    })
-
-    local tab_frame_accent = utility:Draw("Square", v2zero, {
-        Size = v2new(0, 1),
-        Color = window.theme.accent,
-        Group = "accent",
-        ZIndex = 1
-    })
-
-    utility:Connect(rs.RenderStepped, function()
-        if main_frame.Visible and window.sshit then
-            local tab_frame = window.sshit.instances[1]
-
-            tab_frame_accent.Size = v2new(tab_frame.Size.X, 1)
-            tab_frame_accent.Position = tab_frame.Position
-        end
-    end)
-
-    local tabs_frame_outline = utility:Draw("Square", v2new(-1, -1), {
-        Size = tabs_frame.Size + v2new(2, 2),
-        Color = window.theme.outline2,
-        Group = "outline2",
-        Filled = false,
-        Parent = tabs_frame
-    })
-
-    function window.Tab(self, info)
-
-        local name = info.name or "tab"
-
-        local offset = v2new(0, -19)
-
-        local tab = {name = name, instances = {}, sections = {}, sides = {{}, {}}, on = false}
-
-        local count = 1
-
-        if #self.tabs > 0 then
-
-            count = #self.tabs + 1
-            
-            offset = self.tabs[#self.tabs].instances[1].GetOffset() + v2new(self.tabs[#self.tabs].instances[1].Size.X + 1, 0)
+    function self:LoadConfig(name)
+        local cfg = self:GetConfig(name)
+        if not cfg then
+            self:SendNotification('Error loading config: Config does not exist. ('..tostring(name)..')', 5, c3new(1,0,0));
+            return
         end
 
-        local tab_frame = utility:Draw("Square", offset, {
-            Size = v2new(utility:GetPlexSize(name) + 12, 18),
-            Color = window.theme.lcont,
-            Parent = tabs_frame
-        })
-
-        local tab_frame_outline = utility:Draw("Square", v2new(-1, -1), {
-            Size = tab_frame.Size + v2new(2, 2),
-            Color = window.theme.outline2,
-            Group = "outline2",
-            Filled = false,
-            Parent = tab_frame
-        })
-
-        local tab_frame_text = utility:Draw("Text", v2new(tab_frame.Size.X / 2, 2), {
-            Font = 2,
-            Size = 13,
-            Text = name,
-            Color = Color3.new(1, 1, 1),
-            Outline = true,
-            Center = true,
-            Parent = tab_frame
-        })
-
-        local tab_frame_hider = utility:Draw("Square", v2new(0, tab_frame.Size.Y), {
-            Size = v2new(tab_frame.Size.X, 1),
-            Color = window.theme.lcont,
-            Group = "lcont",
-            Parent = tab_frame
-        })
-
-        tab.instances = {tab_frame, tab_frame_outline, tab_frame_text, tab_frame_hider}
-
-        table.insert(self.tabs, tab)
-
-        function tab.Show(self)
-            tab_frame.Color = window.theme.lcont
-            tab_frame_hider.Visible = true
-
-            for i, v in pairs(self.sections) do
-                v:Show()
-            end
-
-            self.on = true
-
-            self:Update()
-        end
-
-        function tab.Hide(self)
-            tab_frame.Color = window.theme.dcont
-            tab_frame_hider.Visible = false
-
-            for i, v in pairs(self.sections) do
-                v:Hide()
-            end
-
-            self.on = false
-
-            self:Update()
-        end
-
-        function tab.UpdateColor(self)
-            tab_frame.Color = self.on and window.theme.lcont or window.theme.dcont
-        end
-
-        function tab.Update(self)
-
-
-            for sn, side in pairs(self.sides) do
-
-
-                for i, v in pairs(side) do
-
-                    
-                    v:Update()
-
-                    local offset = 12
-
-                    if i > 1 then
-
-
-                        local last_sframe = side[i - 1].instances[1]
-
-
-                        offset = offset + last_sframe.GetOffset().Y + last_sframe.Size.Y
-
-                    end
-
-                    v.instances[1].SetOffset(v2new(sn == 1 and 6 or tabs_frame.Size.X/2+6, offset))
-                end
-            end
-
-            self:UpdateColor()
-
-            for i, v in pairs(self.sections) do
-                v:Update()
-            end
-        end
-
-        function tab.Section(self, info)
-            local name = info.name or "section"
-            local side = info.side or "left" side = tostring(side):lower()
-            local render_non_attached = info.rna or info.render_non_attached or false
-
-
-            if side ~= "left" and side ~= "right" then
-                side = "left"
-            end
-
-
-            local section = {name = name, side = side, instances = {}, scale = 0, things = {buttons = {}, toggles = {}, textboxes = {}, dropdowns = {}, sliders = {}, colorpickers ={}, keybinds = {}, lists = {}}, rna = render_non_attached}
-
-            local section_frame 
-
-            if section.rna then
-                section_frame = utility:Draw("Square", v2new(side == "left" and 6 or tabs_frame.Size.X/2 - 6, 16), {
-                    Size = v2new(228, section.scale),
-                    Color = window.theme.cont,
-                    Group = "cont"
-                })
-
-                table.insert(window.rna, section)
-            else
-                section_frame = utility:Draw("Square", v2new(side == "left" and 6 or tabs_frame.Size.X/2 - 6, 16), {
-                    Size = v2new(tabs_frame.Size.X / 2 - 12, section.scale),
-                    Color = window.theme.cont,
-                    Group = "cont",
-                    Parent = tabs_frame
-                })
-            end
-
-            local section_inline = utility:Draw("Square", v2new(-1, -1), {
-                Size = section_frame.Size + v2new(2, 2),
-                Color = window.theme.outline,
-                Group = "outline",
-                Filled = false,
-                Parent = section_frame
-            })
-
-            local section_outline = utility:Draw("Square", v2new(-2, -2), {
-                Size = section_frame.Size + v2new(4, 4),
-                Color = window.theme.lcont,
-                Group = "lcont",
-                Filled = false,
-                Parent = section_frame
-            })
-
-            local section_accent = utility:Draw("Square", v2new(0, 0), {
-                Size = v2new(8, 2),
-                Color = window.theme.accent,
-                Group = "accent",
-                Parent = section_frame
-            })
-
-            local section_title = utility:Draw("Text", v2new(9, -7), {
-                Font = 2,
-                Size = 13,
-                Color = Color3.new(1, 1, 1),
-                Text = name,
-                Parent = section_frame
-            })
-
-            local section_title_bold = utility:Draw("Text", v2new(1, 0), {
-                Font = 2,
-                Size = 13,
-                Color = Color3.new(1, 1, 1),
-                Text = name,
-                Parent = section_title
-            })
-
-            local section_accent2 = utility:Draw("Square", v2new(11 + (#name * 7), 0), {
-                Size = v2new(section_frame.Size.X - (11 + (#name * 7)), 2),
-                Color = window.theme.accent,
-                Group = "accent",
-                Parent = section_frame
-            })
-
-            function section.Show(self)
-                for i, v in pairs(self.instances) do
-                    v.Visible = true
-
-                    if v.Transparency ~= v:getDefaultTransparency() and not window.fading then
-                        v.Transparency = v:getDefaultTransparency()
+        local s,e = pcall(function()
+            setByConfig = true
+            for flag,value in next, http:JSONDecode(cfg) do
+                local option = library.options[flag]
+                if option ~= nil then
+                    if option.class == 'toggle' then
+                        option:SetState(value == nil and false or (value == 1 and true or false));
+                    elseif option.class == 'slider' then
+                        option:SetValue(value == nil and 0 or value)
+                    elseif option.class == 'bind' then
+                        option:SetBind(value == nil and 'none' or (utility:HasProperty(Enum.KeyCode, value) and Enum.KeyCode[value] or Enum.UserInputType[value]));
+                    elseif option.class == 'color' then
+                        option:SetColor(value == nil and c3new(1,1,1) or c3new(value[1], value[2], value[3]));
+                        option:SetTrans(value == nil and 1 or value[4]);
+                    elseif option.class == 'list' then
+                        option:Select(value == nil and '' or value);
+                    elseif option.class == 'box' then
+                        option:SetInput(value == nil and '' or value)
                     end
                 end
             end
-
-            function section.Hide(self)
-                for i, v in pairs(self.instances) do
-                    v.Visible = false
-
-                    v:setOffsetValue(false)
-                end
-            end
-
-            function section.NextObjectPosition(self)
-                return self.scale > 0 and self.scale or 10
-            end
-
-            function section.UpdateScale(self, number)
-                if self.scale == 0 then
-                    self.scale = 10
-                end
-
-                self.scale = self.scale + number + 5
-            end
-
-            function section.Update(self)
-
-                local tside = tab.sides[self.side == "left" and 1 or 2]
-
-                section_frame.Size = v2new(self.rna and 228 or tabs_frame.Size.X / 2 - 12, table.find(tside, self) == #tside and tabs_frame.Size.Y - (section_frame.GetOffset().Y+5) or self.scale > 0 and self.scale or 10)
-                section_inline.Size = section_frame.Size + v2new(2, 2)
-                section_outline.Size = section_inline.Size + v2new(2, 2)
-                section_accent2.Size = v2new(section_frame.Size.X - (11 + (#name * 7)), 2)
-
-                for i, v in pairs(self.things.lists) do
-                    v:update()
-                end
-
-                for _, thing in pairs({"buttons", "dropdowns", "sliders", "textboxes", "keybinds", "colorpickers", "toggles"}) do
-                    for i, v in pairs(section.things[thing]) do
-                        v:Update()
-                    end
-                end
-            end
-
-            function section.SetPositionIHateMyselfAndIWannaDieOk(self, new_pos)
-                if self.rna then
-                    section_frame.Position = new_pos
-                end
-            end
-
-            if self.rna then
-                section:SetPositionIHateMyselfAndIWannaDieOk(v2new(-1000, -1000))
-            end
-
-            utility:Connect(uis.InputChanged, function(input)
-                if input.UserInputType == Enum.UserInputType.MouseMovement and window.tooltip and main_frame.Visible and utility:MouseOverDrawing(section_frame) then
-                    local is_it_visible = false
-
-                    if tab.on then
-                        for i, v in pairs(section.things.toggles) do
-                            if is_it_visible then break end
-                            local toggle_frame = getupvalue(v.Update, 1)
-
-                            if v.tt ~= "" and utility:MouseOverPosition({section_frame.Position + v2new(0, toggle_frame.GetOffset().Y), section_frame.Position + v2new(section_frame.Size.X, toggle_frame.GetOffset().Y + 17)}) then
-                                is_it_visible = true
-
-                                window.tooltip:SetPosition(toggle_frame.Position + v2new(0, 12))
-                                window.tooltip:SetText(v.tt)
-                            end
-                        end
-                    end
-
-                    if not is_it_visible and tab.on then
-                        window.tooltip:SetPosition(v2new(-1000, -1000))
-                    end
-                elseif not utility:MouseOverDrawing(main_frame) and window.tooltip then
-                    window.tooltip:SetPosition(v2new(-1000, -1000))
-                end
-            end)
-
-            function section._Keybind(self, info, offsets, parent, do_update, pointer, name2)
-                local def = info.def or "unset"
-                local name = info.name
-                local flag = info.flag
-
-                local keybind = {value = def, flag = flag, pointer = pointer, name = name, sname = name2, mode = "toggle", instances = {}, minst = {}, binding = false}
-
-                if pointer then
-                    library.pointers[pointer] = keybind
-                end
-
-                local keybind_frame = utility:Draw("Square", offsets[1], {
-                    Size = v2new(40, 12),
-                    Color = window.theme.lcont,
-                    Group = "lcont",
-                    Parent = parent
-                })
-
-                local keybind_title = utility:Draw("Text", offsets[2], {
-                    Font = 2,
-                    Size = 13,
-                    Color = c3rgb(255, 255, 255),
-                    Outline = true,
-                    Text = name,
-                    Parent = parent
-                })
-
-                if not do_update then
-                    keybind_title.Text = ""
-                end
-
-                local keybind_outline = utility:Draw("Square", v2new(-1, -1), {
-                    Size = keybind_frame.Size + v2new(2, 2),
-                    Color = window.theme.outline,
-                    Group = "outline",
-                    Filled = false,
-                    Parent = keybind_frame
-                })
-
-                local keybind_gradient = utility:Draw("Image", v2zero, {
-                    Size = keybind_frame.Size,
-                    Transparency = 0.35,
-                    Parent = keybind_frame
-                })
-
-                local keybind_value = utility:Draw("Text", v2new(keybind_frame.Size.X / 2, -1), {
-                    Font = 2,
-                    Size = 13,
-                    Color = c3rgb(255, 255, 255),
-                    Outline = true,
-                    Center = true,
-                    Text = keybind.value,
-                    Parent = keybind_frame
-                })
-
-                utility:Image(keybind_gradient, "https://i.imgur.com/j9y4dux.png")
-
-                function keybind.Get(self)
-                    return {self.value, self.mode}
-                end
-
-                function keybind.SetOffset(self, offset)
-                    keybind_frame.SetOffset(offset)
-                end
-                
-                function keybind.Update(self)
-                    keybind_value.Text = utility.short_keybind_names[self.value] or self.value:upper()
-
-                    if parent == section_frame then
-                        self:SetOffset(v2new(parent.Size.X - 46, offsets[1].Y))
-                    end
-
-                    if window.kblist then
-                        window.kblist:Update()
-                    end
-                end
-
-                function keybind.Set(self, value)
-                    self.value = value[1]
-                    self.mode = value[2]
-
-                    self:Update()
-                end
-
-                function keybind.AddToTable(self, input_name)
-                    if keybind.value == input_name then
-                        if keybind.mode == "toggle" then
-                            if table.find(window.kbds, keybind.pointer) then
-                                table.remove(window.kbds, table.find(window.kbds, keybind.pointer))
-                            else
-                                table.insert(window.kbds, keybind.pointer)
-                            end
-                        else
-                            table.insert(window.kbds, keybind.pointer)
-                        end
-
-                        if window.kblist then
-                            window.kblist:Update()
-                        end
-                    end
-                end
-
-                function keybind.Close(self)
-                    if #self.minst > 0 then
-                        for i, v in pairs(self.minst) do
-                            v.Remove()
-                        end
-
-                        table.clear(self.minst)
-                    end
-
-                    window.shit.keybind = nil
-                end
-
-                function keybind.Open(self)
-
-                    window:HideUselessDumbassFuckingShitStopPastingMyCodePleaseYouAreSkidAndImGayILikeBigBlackManOkNoProblemThisIsASexcretFuncteiotieitns4epoivi2n45obvi6j45bv74gvho4hgv487()
-                    
-                    local mframe = utility:Draw("Square", v2new(0, 15), {
-                        Color = window.theme.dcont,
-                        Group = "dcont",
-                        Size = v2new(48, 5 + 26),
-                        Parent = keybind_frame
-                    })
-
-                    local mframe_outline = utility:Draw("Square", v2new(-1, -1), {
-                        Color = window.theme.outline,
-                        Group = "outline",
-                        Size = mframe.Size + v2new(2, 2),
-                        Filled = false,
-                        Parent = mframe
-                    })
-
-                    local modes = {}
-
-                    for i, v in pairs({"Toggle", "Hold"}) do
-
-                        modes[i] = utility:Draw("Text", v2new(3, 2 + 14 * (i-1)), {
-                            Font = 2,
-                            Size = 13,
-                            Color = self.mode == v:lower() and window.theme.accent or c3rgb(255, 255, 255),
-                            Group = "accent",
-                            Outline = true,
-                            Text = v,
-                            Parent = mframe
-                        })
-
-                    end
-
-                    self.minst = {mframe, mframe_outline, unpack(modes)}
-
-                    window.shit.keybind = self
-
-                end
-
-                keybind:Set({keybind.value, "toggle"})
-
-                utility:Connect(uis.InputBegan, function(input)
-                    if not keybind.binding then
-                        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                            if main_frame.Visible and (tab.on or table.find(window.rna, section)) and not window:FakeRealMouseFuckingImAloneGoingToKillMyselfWithKnife(section) and utility:MouseOverDrawing(keybind_frame) then
-                                keybind.binding = true
-                                keybind_value.Text = "..."
-                            else
-                                if #keybind.minst > 0 then
-                                    if utility:MouseOverDrawing(keybind.minst[1]) then
-                                        local offset = uis:GetMouseLocation().Y - keybind.minst[1].Position.Y
-
-                                        if offset >= 22 then
-                                            keybind.mode = "hold"
-                                        else
-                                            keybind.mode = "toggle"
-                                        end
-
-                                        for i, v in pairs({keybind.minst[3], keybind.minst[4]}) do
-                                            v.Color = keybind.mode == v.Text:lower() and window.theme.accent or c3rgb(255, 255, 255)
-                                        end
-                                    else
-                                        keybind:Close()
-                                    end
-                                end
-
-                                keybind:AddToTable(input.UserInputType.Name)
-                            end
-                        elseif input.UserInputType == Enum.UserInputType.MouseButton2 then
-                            if main_frame.Visible and (tab.on or table.find(window.rna, section)) and not window:FakeRealMouseFuckingImAloneGoingToKillMyselfWithKnife(section) and utility:MouseOverDrawing(keybind_frame) then
-                                keybind:Open()
-                            else
-                                keybind:AddToTable(input.UserInputType.Name)
-                            end
-                        elseif input.UserInputType == Enum.UserInputType.Keyboard then
-                            keybind:AddToTable(input.KeyCode.Name)
-                        end
-                    else
-                        if input.UserInputType == Enum.UserInputType.Keyboard then
-                            if input.KeyCode ~= Enum.KeyCode.Escape then
-                                keybind.binding = false
-                                keybind:Set({input.KeyCode.Name, keybind.mode})
-                            else
-                                keybind.binding = false
-                                keybind:Set({"unset", keybind.mode})
-                            end
-                        elseif input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.MouseButton2 then
-                            keybind.binding = false
-                            keybind:Set({input.UserInputType.Name, keybind.mode})
-                        end
-                    end
-                end)
-
-                utility:Connect(uis.InputEnded, function(input)
-                    if not keybind.binding and keybind.mode == "hold" then
-                        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.MouseButton2 then
-                            if keybind.value == input.UserInputType.Name then
-                                if table.find(window.kbds, keybind.pointer) then
-                                    table.remove(window.kbds, table.find(window.kbds, keybind.pointer))
-
-                                    if window.kblist then
-                                        window.kblist:Update()
-                                    end
-                                end
-                            end
-                        elseif input.UserInputType == Enum.UserInputType.Keyboard then
-                            if keybind.value == input.KeyCode.Name then
-                                if table.find(window.kbds, keybind.pointer) then
-                                    table.remove(window.kbds, table.find(window.kbds, keybind.pointer))
-
-                                    if window.kblist then
-                                        window.kblist:Update()
-                                    end
-                                end
-                            end
-                        end
-                    end
-                end)
-
-                keybind.instances = {keybind_frame, keybind_title, keybind_outline, keybind_gradient, keybind_value}
-
-                self.instances = utility:Combine(self.instances, keybind.instances)
-
-                if do_update then
-                    self:UpdateScale(13)
-                end
-
-                table.insert(section.things.keybinds, keybind)
-
-                return keybind
-
-            end
-
-            function section._Colorpicker(self, info, offsets, parent, do_update, pointer, cptable)
-                local name = info.name
-                local def = info.def or c3rgb(255, 0, 0)
-                local trans = info.trans or info.transparency
-                local deftrans = info.deftrans or info.defaultrans or 0
-                local flag = info.flag
-                local callback = info.callback or function() end
-
-                local colorpicker = {value = def, name = name, trans = trans, callback = callback, pointer = pointer, flag = flag, dvalues = {}, instances = {}}
-
-                if pointer then
-                    library.pointers[pointer] = colorpicker
-                end
-
-                table.insert(cptable, colorpicker)
-
-                local cpframe = utility:Draw("Square", offsets[1], {
-                    Size = v2new(30, 12),
-                    Color = def,
-                    Parent = parent
-                })
-
-                local cpframe_outline = utility:Draw("Square", v2new(-1, -1), {
-                    Size = cpframe.Size + v2new(2, 2),
-                    Color = window.theme.outline,
-                    Group = "outline",
-                    Filled = false,
-                    Parent = cpframe
-                })
-
-                local cpframe_gradient = utility:Draw("Image", v2zero, {
-                    Size = cpframe.Size,
-                    Transparency = 0.35,
-                    Parent = cpframe
-                })
-
-                local cptitle = utility:Draw("Text", offsets[2], {
-                    Font = 2,
-                    Size = 13,
-                    Color = c3rgb(255, 255, 255),
-                    Outline = true,
-                    Text = name,
-                    Parent = parent
-                })
-
-                utility:Image(cpframe_gradient, "https://i.imgur.com/j9y4dux.png")
-
-                if not do_update then
-                    cptitle.Text = ""
-                end 
-
-                function colorpicker.Get(self)
-                    return not self.trans and {self.value:ToHSV()} or {{self.value[1]:ToHSV()}, self.value[2]}
-                end
-
-                function colorpicker.SetOffset(self, offset)
-                    cpframe.SetOffset(offset)
-                end
-
-                function colorpicker.Update(self)
-                    cpframe.Color = self.trans and self.value[1] or self.value
-
-                    if parent == section_frame then
-                        self:SetOffset(v2new(parent.Size.X - 36, offsets[1].Y))
-                    end
-                end
-
-                function colorpicker.Set(self, value)
-
-                    self.value = not self.trans and c3hsv(unpack(value)) or {c3hsv(value[1][1], value[1][2], value[1][3]), value[2]}
-
-                    if colorpicker.flag ~= nil then
-                        library.flags[flag] = self.value
-                    end
-
-                    self:Update()
-
-                    self.callback(self.value)
-                end
-
-                function colorpicker.Close(self)
-                    if #self.instances > 0 then
-                        for i, v in pairs(self.instances) do
-                            v.Remove()
-                        end
-
-                        self.instances = {}
-
-                        window.shit.colorpicker = nil
-                    end
-                end
-
-                function colorpicker.Open(self)
-
-                    window:HideUselessDumbassFuckingShitStopPastingMyCodePleaseYouAreSkidAndImGayILikeBigBlackManOkNoProblemThisIsASexcretFuncteiotieitns4epoivi2n45obvi6j45bv74gvho4hgv487()
-
-                    local hsv = (self.trans and {self.value[1]:ToHSV()}) or {self.value:ToHSV()}
-
-                    self.dvalues = {hsv[1], hsv[2], hsv[3], self.trans and self.value[2] or 0, false, false, false}
-
-                    local cpdropframe = utility:Draw("Square", v2new(35, 0), {
-                        Color = window.theme.dcont,
-                        Group = "dcont",
-                        Size = v2new(self.trans and 152 or 137, 120),
-                        Parent = cpframe
-                    })
-
-                    local cpdropframe_outline = utility:Draw("Square", v2new(-1, -1), {
-                        Color = window.theme.outline,
-                        Group = "outline",
-                        Size = cpdropframe.Size + v2new(2, 2),
-                        Filled = false,
-                        Parent = cpdropframe
-                    })
-
-                    local cpdropframe_accent = utility:Draw("Square", v2zero, {
-                        Color = window.theme.accent,
-                        Group = "accent",
-                        Size = v2new(cpdropframe.Size.X, 1),
-                        Parent = cpdropframe
-                    })
-
-                    local cpdropframe_color = utility:Draw("Square", v2new(10, 10), {
-                        Color = c3hsv(self.dvalues[1], 1, 1),
-                        Size = v2new(100, 100),
-                        Parent = cpdropframe
-                    })
-
-                    local cpdropframe_color_outline = utility:Draw("Square", v2new(-1, -1), {
-                        Color = window.theme.outline,
-                        Group = "outline",
-                        Size = cpdropframe_color.Size + v2new(2, 2),
-                        Filled = false,
-                        Parent = cpdropframe_color
-                    })
-
-                    local cpdropframe_color_image = utility:Draw("Image", v2zero, {
-                        Size = cpdropframe_color.Size,
-                        Parent = cpdropframe_color
-                    })
-
-                    local cpdropframe_color_cursor = utility:Draw("Square", v2new(math.clamp(self.dvalues[2]*100, 0, 97), math.clamp((1-self.dvalues[3])*100, 0, 97)), {
-                        Color = c3rgb(255, 255, 255),
-                        Size = v2new(3, 3),
-                        Parent = cpdropframe_color
-                    })
-
-                    local cpdropframe_color_cursor_outline = utility:Draw("Square", v2new(-1, -1), {
-                        Color = window.theme.outline,
-                        Group = "outline",
-                        Size = cpdropframe_color_cursor.Size + v2new(2, 2),
-                        Filled = false,
-                        Parent = cpdropframe_color_cursor
-                    })
-
-                    local cpdropframe_hue = utility:Draw("Square", v2new(120, 10), {
-                        Color = window.theme.outline,
-                        Group = "outline",
-                        Size = v2new(7, 100),
-                        Filled = false,
-                        Parent = cpdropframe
-                    })
-
-                    local cpdropframe_hue_image = utility:Draw("Image", v2new(1, 1), {
-                        Size = cpdropframe_hue.Size - v2new(2, 2),
-                        Parent = cpdropframe_hue
-                    })
-
-                    local cpdropframe_hue_picker = utility:Draw("Square", v2new(0, math.clamp(math.floor(self.dvalues[1]*100), 0, 99)), {
-                        Color = c3rgb(255, 255, 255),
-                        Size = v2new(7, 1),
-                        Parent = cpdropframe_hue
-                    })
-
-                    local cpdropframe_hue_picker_outline = utility:Draw("Square", v2new(-1, -1), {
-                        Color = window.theme.outline,
-                        Group = "outline",
-                        Size = cpdropframe_hue_picker.Size + v2new(2, 2),
-                        Filled = false,
-                        Parent = cpdropframe_hue_picker
-                    })
-
-                    local cpdropframe_trans = utility:Draw("Square", v2new(137, 10), {
-                        Color = window.theme.outline,
-                        Group = "outline",
-                        Size = v2new(7, 100),
-                        Filled = false,
-                        Parent = cpdropframe
-                    })
-
-                    local cpdropframe_trans_image = utility:Draw("Image", v2new(1, 1), {
-                        Size = cpdropframe_trans.Size - v2new(2, 2),
-                        Parent = cpdropframe_trans
-                    })
-
-                    local cpdropframe_trans_picker = utility:Draw("Square", v2new(0, math.clamp(math.floor(self.dvalues[4]*100), 0, 99)), {
-                        Color = c3rgb(255, 255, 255),
-                        Size = v2new(7, 1),
-                        Parent = cpdropframe_trans
-                    })
-
-                    local cpdropframe_trans_picker_outline = utility:Draw("Square", v2new(-1, -1), {
-                        Color = window.theme.outline,
-                        Group = "outline",
-                        Size = cpdropframe_trans_picker.Size + v2new(2, 2),
-                        Filled = false,
-                        Parent = cpdropframe_trans_picker
-                    })
-
-                    if not self.trans then
-                        cpdropframe_trans.Visible = false
-                        cpdropframe_trans_image.Visible = false
-                        cpdropframe_trans_picker.Visible = false
-                        cpdropframe_trans_picker_outline.Visible = false
-                    end
-
-                    utility:Image(cpdropframe_color_image, "https://i.imgur.com/wpDRqVH.png")
-                    utility:Image(cpdropframe_hue_image, "https://i.imgur.com/iEOsHFv.png")
-                    utility:Image(cpdropframe_trans_image, "https://i.imgur.com/GeMU2Ke.png")
-
-                    self.instances = {cpdropframe, cpdropframe_outline, cpdropframe_accent, cpdropframe_color, cpdropframe_color_outline, cpdropframe_color_image,
-                        cpdropframe_color_cursor, cpdropframe_color_cursor_outline, cpdropframe_hue, cpdropframe_hue_image, cpdropframe_hue_picker, cpdropframe_hue_picker_outline,
-                        cpdropframe_trans, cpdropframe_trans_image, cpdropframe_trans_picker, cpdropframe_trans_picker_outline
-                    }
-
-                    window.shit.colorpicker = self
-                end
-
-                function colorpicker.Colorpicker(self, info)
-
-                    self.doublecp = true
-
-                    return section:_Colorpicker(info, {v2new(-35, 0) , v2zero}, cpframe, false, pointer .. "Colorpicker", cptable)
-                end
-
-                colorpicker:Set(colorpicker.trans and {{colorpicker.value:ToHSV()}, deftrans} or {colorpicker.value:ToHSV()})
-
-                utility:Connect(uis.InputBegan, function(input)
-                    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                        if main_frame.Visible and (tab.on or table.find(window.rna, section)) then 
-                            if not window:FakeRealMouseFuckingImAloneGoingToKillMyselfWithKnife(section) and utility:MouseOverDrawing(cpframe) then
-                                colorpicker:Open()
-                            else
-                                if #colorpicker.instances > 0 then
-                                    if utility:MouseOverDrawing(colorpicker.instances[1]) then
-                                        if utility:MouseOverDrawing(colorpicker.instances[4]) then
-                                            local offset = uis:GetMouseLocation() - colorpicker.instances[4].Position
-
-                                            local size = colorpicker.instances[4].Size
-
-                                            local px, py = offset.X / size.X, offset.Y / size.Y
-
-                                            px, py = math.clamp(px, 0, 1), math.clamp(py, 0, 1)
-
-                                            local mno, mxo = v2zero, size - v2new(4, 4)
-
-                                            local posx, posy =  math.floor(math.clamp(px * size.X, mno.X, mxo.X)), math.floor(math.clamp(py * size.Y, mno.Y, mxo.Y))
-
-                                            colorpicker.instances[7].SetOffset(v2new(posx, posy))
-
-                                            colorpicker.dvalues[2] = px
-                                            colorpicker.dvalues[3] = 1-py
-
-                                            colorpicker.dvalues[5] = true
-                                        elseif utility:MouseOverDrawing(colorpicker.instances[9]) then
-                                            local offset = uis:GetMouseLocation().Y - colorpicker.instances[9].Position.Y
-
-                                            local size = colorpicker.instances[9].Size.Y
-
-                                            local py = math.clamp(offset / size, 0, 1)
-
-                                            colorpicker.instances[11].SetOffset(v2new(0, math.clamp(math.floor(py*size), 0, size-1)))
-
-                                            colorpicker.instances[4].Color = c3hsv(py, 1, 1)
-
-                                            colorpicker.dvalues[1] = py
-                                            colorpicker.dvalues[6] = true
-                                        elseif utility:MouseOverDrawing(colorpicker.instances[13]) and colorpicker.trans then
-                                            local offset = uis:GetMouseLocation().Y - colorpicker.instances[13].Position.Y
-
-                                            local size = colorpicker.instances[13].Size.Y
-
-                                            local py = math.clamp(offset / size, 0, 1)
-
-                                            colorpicker.instances[15].SetOffset(v2new(0, math.clamp(math.floor(py*size), 0, size-1)))
-
-                                            colorpicker.dvalues[4] = py
-                                            colorpicker.dvalues[7] = true
-                                        end
-
-                                        local dvalues = colorpicker.dvalues
-                                        local color = c3hsv(dvalues[1], dvalues[2], dvalues[3])
-
-                                        colorpicker:Set(colorpicker.trans and {{color:ToHSV()}, dvalues[4]} or {color:ToHSV()})
-                                    else
-                                        colorpicker:Close()
-                                    end
-                                else
-                                    colorpicker:Close()
-                                end
-                            end
-                        end
-                    end
-                end)
-
-                utility:Connect(uis.InputChanged, function(input)
-                    if input.UserInputType == Enum.UserInputType.MouseMovement and #colorpicker.instances > 0 then
-                        if main_frame.Visible and (tab.on or table.find(window.rna, section)) then
-                            if colorpicker.dvalues[5] then
-                                local mouse_pos = uis:GetMouseLocation()
-                                local offset = mouse_pos - colorpicker.instances[4].Position
-
-                                local size = colorpicker.instances[4].Size
-
-                                local px, py = offset.X / size.X, offset.Y / size.Y
-
-                                px, py = math.clamp(px, 0, 1), math.clamp(py, 0, 1)
-
-                                local mno, mxo = v2zero, size - v2new(4, 4)
-
-                                local posx, posy =  math.floor(math.clamp(px * size.X, mno.X, mxo.X)), math.floor(math.clamp(py * size.Y, mno.Y, mxo.Y))
-
-                                colorpicker.dvalues[2] = px
-                                colorpicker.dvalues[3] = 1-py
-
-                                colorpicker.instances[7].SetOffset(v2new(posx, posy))
-                            elseif colorpicker.dvalues[6] then
-                                local offset = uis:GetMouseLocation().Y - colorpicker.instances[9].Position.Y
-
-                                local size = colorpicker.instances[9].Size.Y
-
-                                local py = math.clamp(offset / size, 0, 1)
-
-                                colorpicker.instances[11].SetOffset(v2new(0, math.clamp(math.floor(py*size), 0, size-1)))
-
-                                colorpicker.instances[4].Color = c3hsv(py, 1, 1)
-
-                                colorpicker.dvalues[1] = py
-                            elseif colorpicker.dvalues[7] then
-                                local offset = uis:GetMouseLocation().Y - colorpicker.instances[13].Position.Y
-
-                                local size = colorpicker.instances[13].Size.Y
-
-                                local py = math.clamp(offset / size, 0, 1)
-
-                                colorpicker.instances[15].SetOffset(v2new(0, math.clamp(math.floor(py*size), 0, size-1)))
-
-                                colorpicker.dvalues[4] = py
-                            end
-
-                            local dvalues = colorpicker.dvalues
-                            local color = c3hsv(dvalues[1], dvalues[2], dvalues[3])
-
-                            colorpicker:Set(colorpicker.trans and {{color:ToHSV()}, dvalues[4]} or {color:ToHSV()})
-                        end
-                    end
-                end)
-
-                utility:Connect(uis.InputEnded, function(input)
-                    if input.UserInputType == Enum.UserInputType.MouseButton1 and #colorpicker.instances > 0 then
-                        if colorpicker.dvalues[5] then
-
-                            local mouse_pos = uis:GetMouseLocation()
-                            local offset = mouse_pos - colorpicker.instances[4].Position
-
-                            local size = colorpicker.instances[4].Size
-
-                            local px, py = offset.X / size.X, offset.Y / size.Y
-
-                            px, py = math.clamp(px, 0, 1), math.clamp(py, 0, 1)
-
-                            local mno, mxo = v2zero, size - v2new(4, 4)
-
-                            local posx, posy =  math.floor(math.clamp(px * size.X, mno.X, mxo.X)), math.floor(math.clamp(py * size.Y, mno.Y, mxo.Y))
-
-                            colorpicker.dvalues[2] = px
-                            colorpicker.dvalues[3] = 1-py
-
-                            colorpicker.instances[7].SetOffset(v2new(posx, posy))
-
-                            colorpicker.dvalues[5] = false
-                        elseif colorpicker.dvalues[6] then
-                            local offset = uis:GetMouseLocation().Y - colorpicker.instances[9].Position.Y
-
-                            local size = colorpicker.instances[9].Size.Y
-
-                            local py = math.clamp(offset / size, 0, 1)
-
-                            colorpicker.instances[11].SetOffset(v2new(0, math.clamp(math.floor(py*size), 0, size-1)))
-
-                            colorpicker.instances[4].Color = c3hsv(py, 1, 1)
-
-                            colorpicker.dvalues[1] = py
-                            colorpicker.dvalues[6] = false
-                        elseif colorpicker.dvalues[7] then
-                            local offset = uis:GetMouseLocation().Y - colorpicker.instances[13].Position.Y
-
-                            local size = colorpicker.instances[13].Size.Y
-
-                            local py = math.clamp(offset / size, 0, 1)
-
-                            colorpicker.instances[15].SetOffset(v2new(0, math.clamp(math.floor(py*size), 0, size-1)))
-
-                            colorpicker.dvalues[4] = py
-                            colorpicker.dvalues[7] = false
-                        end
-
-                        local dvalues = colorpicker.dvalues
-                        local color = c3hsv(dvalues[1], dvalues[2], dvalues[3])
-
-                        colorpicker:Set(colorpicker.trans and {{color:ToHSV()}, dvalues[4]} or {color:ToHSV()})
-                    end
-                end)
-
-                self.instances = utility:Combine(self.instances, {cpframe, cptitle, cpframe_outline, cpframe_gradient})
-
-                if do_update then
-                    self:UpdateScale(13)
-                end
-
-                table.insert(self.things.colorpickers, colorpicker)
-
-                return colorpicker
-            end
-
-            function section.Button(self, info)
-
-                local name = info.name or "Button"
-                local callback = info.callback or function() end
-                
-                local button = {name = name, callback = callback}
-
-                local button_frame = utility:Draw("Square", v2new(6, self:NextObjectPosition()), {
-                    Size = v2new(section_frame.Size.X - 12, 18),
-                    Color = window.theme.lcont,
-                    Group = "lcont",
-                    Parent = section_frame
-                })
-
-                local button_outline = utility:Draw("Square", v2new(-1, -1), {
-                    Size = button_frame.Size + v2new(2, 2),
-                    Color = window.theme.outline,
-                    Group = "outline",
-                    Filled = false,
-                    Parent = button_frame
-                })
-
-                local button_gradient = utility:Draw("Image", v2zero, {
-                    Size = button_frame.Size,
-                    Transparency = 0.35,
-                    Parent = button_frame
-                })
-
-                local button_title = utility:Draw("Text", v2new(button_frame.Size.X / 2, 2), {
-                    Font = 2,
-                    Size = 13,
-                    Color = Color3.new(1, 1, 1),
-                    Outline = true,
-                    Center = true,
-                    Text = name,
-                    Parent = button_frame
-                })
-
-                utility:Image(button_gradient, "https://i.imgur.com/j9y4dux.png")
-
-                function button.Update(self)
-                    button_frame.Size = v2new(section_frame.Size.X - 12, 18)
-                    button_outline.Size = button_frame.Size + v2new(2, 2)
-                    button_gradient.Size = button_frame.Size
-                    button_title.SetOffset(v2new(button_frame.Size.X/2, 2))
-                end
-
-                utility:Connect(uis.InputBegan, function(input)
-                    if input.UserInputType == Enum.UserInputType.MouseButton1 and main_frame.Visible and tab.on and not window:FakeRealMouseFuckingImAloneGoingToKillMyselfWithKnife(section) and utility:MouseOverPosition({section_frame.Position + v2new(0, button_frame.GetOffset().Y), section_frame.Position + v2new(section_frame.Size.X, button_frame.GetOffset().Y + 18)}) then
-                        button.callback()
-                    end
-                end)
-
-                self.instances = utility:Combine(self.instances, {button_frame, button_outline, button_title, button_gradient})
-
-                self:UpdateScale(18)
-
-                table.insert(self.things.buttons, button)
-
-            end
-
-            function section.Textbox(self, info)
-                local name = info.name
-                local def = info.default or info.def or ""
-                local callback = info.callback or function() end
-                local flag = info.flag
-                local pointer = tab.name .. section.name .. name
-
-                local textbox = {name = name, typing = false, value = def, callback = callback, flag = flag, pointer = pointer}
-
-                if pointer then
-                    library.pointers[pointer] = textbox
-                end
-
-                local textbox_frame = utility:Draw("Square", v2new(6, self:NextObjectPosition()), {
-                    Size = v2new(section_frame.Size.X - 12, 18),
-                    Color = window.theme.lcont,
-                    Group = "lcont",
-                    Parent = section_frame
-                })
-
-                local textbox_outline = utility:Draw("Square", v2new(-1, -1), {
-                    Size = textbox_frame.Size + v2new(2, 2),
-                    Color = window.theme.outline,
-                    Group = "outline",
-                    Filled = false,
-                    Parent = textbox_frame
-                })
-
-                local textbox_gradient = utility:Draw("Image", v2zero, {
-                    Size = textbox_frame.Size,
-                    Transparency = 0.35,
-                    Parent = textbox_frame
-                })
-
-                local textbox_title = utility:Draw("Text", v2new(4, 2), {
-                    Font = 2,
-                    Size = 13,
-                    Color = c3rgb(255, 255, 255),
-                    Outline = true,
-                    Text = name,
-                    Parent = textbox_frame
-                })
-
-                utility:Image(textbox_gradient, "https://i.imgur.com/j9y4dux.png")
-
-                function textbox.Update(self)
-                    textbox_frame.Size = v2new(section_frame.Size.X - 12, 18)
-                    textbox_outline.Size = textbox_frame.Size + v2new(2, 2)
-                    textbox_gradient.Size = textbox_frame.Size
-
-                    local max = math.floor(textbox_frame.Size.X/7)-3
-
-                    if self.value == "" then
-                        textbox_title.Color = c3rgb(170, 170, 170)
-
-                        local sub = self.name:sub(1, max)
-
-                        textbox_title.Text = sub .. (#self.name > max and "..." or "")
-                    else
-                        textbox_title.Color = c3rgb(255, 255, 255)
-
-                        local sub = self.value:sub(1, max)
-
-                        textbox_title.Text = sub .. (#self.value > max and "..." or "")
-                    end
-                end
-
-                function textbox.Get(self)
-                    return self.value
-                end
-
-                function textbox.Start(self)
-                    self.typing = true
-
-                    window.shit.textbox = self
-                end
-
-                function textbox.Stop(self)
-                    self.typing = false
-
-                    window.shit.textbox = nil
-                end
-
-                function textbox.Set(self, value)
-                    self.value = value
-
-                    if self.flag then
-                        library.flags[self.flag] = value
-                    end
-
-                    self:Update()
-                end
-
-                textbox:Set(textbox.value)
-
-                utility:Connect(uis.InputBegan, function(input)
-                    if input.UserInputType == Enum.UserInputType.MouseButton1 and main_frame.Visible and tab.on then
-                        if not window:FakeRealMouseFuckingImAloneGoingToKillMyselfWithKnife(section) and utility:MouseOverPosition({section_frame.Position + v2new(0, textbox_frame.GetOffset().Y), section_frame.Position + v2new(section_frame.Size.X, textbox_frame.GetOffset().Y + 18)}) then
-                            textbox:Start()
-                        else
-                            textbox:Stop()
-                        end
-                    elseif input.UserInputType == Enum.UserInputType.Keyboard and textbox.typing then
-                        local keycode = input.KeyCode
-
-                        local key_name = uis:GetStringForKeyCode(keycode):lower()
-
-                        if uis:IsKeyDown("LeftShift") or uis:IsKeyDown("RightShift") then
-                            key_name = utility:ShiftKey(key_name)
-                        end
-
-                        if keycode.Name ~= "Backspace" then
-                            if key_name ~= "" then
-                                textbox:Set(textbox.value .. key_name)
-                            end
-                        else
-                            textbox:Set(textbox.value:sub(1, -2))
-                        end
-                    end
-                end)
-
-                self.instances = utility:Combine(self.instances, {textbox_frame, textbox_outline, textbox_gradient, textbox_title})
-
-                self:UpdateScale(18)
-
-                table.insert(self.things.textboxes, textbox)
-
-                return textbox
-            end
-
-            function section.Toggle(self, info)
-                
-                local name = info.name or "toggle"
-                local default = info.default or info.def or false
-                local callback = info.callback or function() end
-                local tooltip = info.tooltip or info.ttip or info.tt or ""
-                local flag = info.flag
-                local pointer = info.pointer or tab.name .. section.name .. name
-
-                local toggle = {name = name, flag = flag, state = default, callback = callback, tt = tooltip, pointer = pointer}
-
-                if toggle.pointer then
-                    library.pointers[pointer] = toggle
-                end
-
-                local toggle_frame = utility:Draw("Square", v2new(6, self:NextObjectPosition() + 3), {
-                    Size = v2new(8, 8),
-                    Parent = section_frame
-                })
-
-                local toggle_outline = utility:Draw("Square", v2new(-1, -1), {
-                    Size = toggle_frame.Size + v2new(2, 2),
-                    Color = window.theme.outline,
-                    Group = "outline",
-                    Filled = false,
-                    Parent = toggle_frame
-                })
-
-                local toggle_gradient = utility:Draw("Image", v2zero, {
-                    Size = toggle_frame.Size,
-                    Transparency = 0.35,
-                    Parent = toggle_frame
-                })
-
-                local toggle_title = utility:Draw("Text", v2new(13, -3), {
-                    Font = 2,
-                    Size = 13,
-                    Color = Color3.new(1, 1, 1),
-                    Outline = true,
-                    Text = name,
-                    Parent = toggle_frame
-                })
-
-                utility:Image(toggle_gradient, "https://i.imgur.com/j9y4dux.png")
-
-                function toggle.Get(self)
-                    return self.state
-                end
-
-                function toggle.Update(self)
-                    toggle_frame.Color = self.state and window.theme.accent or window.theme.lcont
-
-                    if self.keybind then
-                        self.keybind:SetOffset(v2new(section_frame.Size.X - (45+8), -1))
-                    end
-
-                    if self.fcp then
-                        self.fcp:SetOffset(v2new(section_frame.Size.X - (35+8), -1))
-                    end
-
-                    if self.flag then
-                        library.flags[self.flag] = self.state
-                    end
-                end
-
-                function toggle.Set(self, state)
-                    self.state = state
-
-                    self:Update()
-
-                    self.callback(self.state)
-                end
-
-                function toggle.Keybind(self, info)
-                    info.name = self.name
-
-                    self.keybind = section:_Keybind(info, {v2new(section_frame.Size.X - (45+8), -1), v2new()}, toggle_frame, false, tab.name .. section.name .. info.name .. "Keybind", section.name)
-                    
-                    self.kexs = true
-
-                    return self.keybind
-                end
-
-                function toggle.Colorpicker(self, info)
-                    info.name = self.name
-
-                    self.cps = {}
-
-                    self.fcp = section:_Colorpicker(info, {v2new(section_frame.Size.X - (35+8), -1), v2new()}, toggle_frame, false, tab.name .. section.name .. info.name .. "Colorpicker", self.cps)
-
-                    return self.fcp
-                end
-
-                toggle:Set(default)
-
-                utility:Connect(uis.InputBegan, function(input)
-                    local offset = (toggle.kexs and section_frame.Size.X - 46) or (toggle.cps ~= nil and section_frame.Size.X - (1 + (#toggle.cps*35))) or section_frame.Size.X
-
-                    if input.UserInputType == Enum.UserInputType.MouseButton1 and main_frame.Visible and (tab.on or table.find(window.rna, section)) and not window:FakeRealMouseFuckingImAloneGoingToKillMyselfWithKnife(section) and utility:MouseOverPosition({section_frame.Position + v2new(0, toggle_frame.GetOffset().Y), section_frame.Position + v2new(offset, toggle_frame.GetOffset().Y + 17)}) then
-                        toggle:Set(not toggle.state)
-                    end
-                end)
-
-                self.instances = utility:Combine(self.instances, {toggle_frame, toggle_outline, toggle_title, toggle_gradient})
-
-                self:UpdateScale(13)
-
-                table.insert(self.things.toggles, toggle)
-
-                return toggle
-            end
-
-            function section.Slider(self, info)
-                info = info or {}
-
-                local name = info.name or "slider"
-                local min = info.min or 1
-                local max = info.max or 100
-                local def = info.def or min
-                local dec = info.dec or 1
-                local suf = info.suf or ""
-                local mintval = info.mintval or info.min_text_value
-                local maxtval = info.maxtval or info.max_text_value
-                local flag = info.flag or ""
-                local callback = info.callback or function() end
-                local pointer = info.pointer or tab.name .. section.name .. name
-
-                local slider = {name = name, flag = flag, pointer = pointer, value = def, min = min, max = max, suf = suf, dec = dec, mintval = mintval, maxtval = maxtval, holding = false, callback = callback}
-
-                if pointer then
-                    library.pointers[pointer] = slider
-                end
-
-                local slider_title = utility:Draw("Text", v2new(6, self:NextObjectPosition() + 3), {
-                    Color = c3rgb(255, 255, 255),
-                    Outline = true,
-                    Size = 13,
-                    Font = 2,
-                    Text = name,
-                    Parent = section_frame
-                })
-
-                local slider_pm = utility:Draw("Text", v2new(section_frame.Size.X-33, 0), {
-                    Color = c3rgb(255, 255, 255),
-                    Outline = true,
-                    Size = 13,
-                    Font = 2,
-                    Text = "- +",
-                    Parent = slider_title
-                })
-
-                local slider_frame = utility:Draw("Square", v2new(0, 16), {
-                    Size = v2new(section_frame.Size.X - 12, 10),
-                    Color = window.theme.lcont,
-                    Group = "lcont",
-                    Parent = slider_title
-                })
-
-                local slider_outline = utility:Draw("Square", v2new(-1, -1), {
-                    Size = slider_frame.Size + v2new(2, 2),
-                    Color = window.theme.outline,
-                    Group = "outline",
-                    Filled = false,
-                    Parent = slider_frame
-                })
-
-                local slider_bar = utility:Draw("Square", v2new(), {
-                    Color = window.theme.accent,
-                    Size = v2new(0, slider_frame.Size.Y),
-                    Group = "accent",
-                    Parent = slider_frame
-                })
-
-                local slider_gradient = utility:Draw("Image", v2new(), {
-                    Size = slider_frame.Size,
-                    Transparency = .75,
-                    Parent = slider_frame
-                })
-
-                local slider_value = utility:Draw("Text", v2new(slider_frame.Size.X / 2, -2), {
-                    Color = c3rgb(255, 255, 255),
-                    Outline = true,
-                    Size = 13,
-                    Font = 2,
-                    Text = tostring(def) .. "/" .. tostring(max) .. suf,
-                    Center = true,
-                    Parent = slider_frame
-                })
-
-                utility:Image(slider_gradient, "https://i.imgur.com/j9y4dux.png")
-
-                function slider.Get(self)
-                    return self.value
-                end
-                
-                function slider.Update(self)
-                    slider_frame.Size = v2new(section_frame.Size.X - 12, 10)
-                    slider_outline.Size = slider_frame.Size + v2new(2, 2)
-                    slider_gradient.Size = slider_frame.Size
-                    slider_value.SetOffset(v2new(slider_frame.Size.X/2, -2))
-                    slider_pm.SetOffset(v2new(section_frame.Size.X-33, 0))
-
-                    slider_value.Text = self.mintval and self.value == self.min and self.mintval or self.maxtval and self.value == self.max and self.maxtval or ("%s%s"):format(tostring(self.value), tostring(slider.suf))
-
-                    local percent = 1 - (self.max - self.value) / (self.max - self.min)
-
-                    slider_bar.Size = v2new(percent * slider_frame.Size.X, slider_frame.Size.Y)
-
-                    if self.flag then
-                        library.flags[self.flag] = self.value
-                    end
-                end
-
-                function slider.Set(self, value)
-                    self.value = value
-
-                    self:Update()
-
-                    callback(self.value)
-                end
-
-                slider:Set(slider.value)
-
-                utility:Connect(uis.InputBegan, function(input)
-                    if input.UserInputType == Enum.UserInputType.MouseButton1 and main_frame.Visible and (tab.on or table.find(window.rna, section)) and not window:FakeRealMouseFuckingImAloneGoingToKillMyselfWithKnife(section) and utility:MouseOverPosition({section_frame.Position + v2new(0, slider_title.GetOffset().Y), section_frame.Position + v2new(section_frame.Size.X, slider_title.GetOffset().Y + 29)}) then
-                        if utility:MouseOverPosition({section_frame.Position + v2new(section_frame.Size.X-27, slider_title.GetOffset().Y), section_frame.Position + v2new(section_frame.Size.X, slider_title.GetOffset().Y+14)}) then
-                            local offset = uis:GetMouseLocation().X - slider_pm.Position.X
-                            if offset < 15 then
-                                slider:Set(math.clamp(math.floor((slider.value - (1 / slider.dec)) * slider.dec) / slider.dec, slider.min, slider.max))
-                            elseif offset > 15 then
-                                local value_fix = (slider.value + (1 / slider.dec))
-
-                                if value_fix % (1 / slider.dec) ~= 0 then
-                                    value_fix = math.round(value_fix * (slider.dec * 10)) / (slider.dec * 10)
-                                end
-
-                                slider:Set(math.clamp(math.floor(value_fix * slider.dec) / slider.dec, slider.min, slider.max))
-                            end
-                        else
-                            slider.holding = true
-                            local percent = math.clamp(uis:GetMouseLocation().X - slider_bar.Position.X, 0, slider_frame.Size.X) / slider_frame.Size.X
-                            local value = math.floor((slider.min + (slider.max - slider.min) * percent) * slider.dec) / slider.dec
-                            value = math.clamp(value, slider.min, slider.max)
-                            slider:Set(value)
-                        end
-                    end
-                end)
-
-                utility:Connect(uis.InputChanged, function(input)
-                    if input.UserInputType == Enum.UserInputType.MouseMovement and slider.holding then
-                        local percent = math.clamp(uis:GetMouseLocation().X - slider_bar.Position.X, 0, slider_frame.Size.X) / slider_frame.Size.X
-                        local value = math.floor((slider.min + (slider.max - slider.min) * percent) * slider.dec) / slider.dec
-                        value = math.clamp(value, slider.min, slider.max)
-                        slider:Set(value)
-                    end
-                end)
-
-                utility:Connect(uis.InputEnded, function(input)
-                    if input.UserInputType == Enum.UserInputType.MouseButton1 and slider.holding then
-                        slider.holding = false
-                        local percent = math.clamp(uis:GetMouseLocation().X - slider_bar.Position.X, 0, slider_frame.Size.X) / slider_frame.Size.X
-                        local value = math.floor((slider.min + (slider.max - slider.min) * percent) * slider.dec) / slider.dec
-                        value = math.clamp(value, slider.min, slider.max)
-                        slider:Set(value)
-                    end
-                end)
-
-                slider.instances = {slider_title, slider_frame, slider_outline, slider_bar, slider_gradient, slider_value, slider_pm}
-
-                self.instances = utility:Combine(self.instances, slider.instances)
-
-                self:UpdateScale(28)
-
-                table.insert(self.things.sliders, slider)
-
-                return slider
-
-            end
-
-            function section.Dropdown(self, info)
-                info = info or {}
-
-                local name = info.name or "dropdown"
-                local options = info.options or {"first", "second", "third"}
-                local multi = info.multi or false
-                local def = info.default or info.def or (not multi and options[1] or {options[1]})
-                local minOptions = info.min or info.minOptions or 1
-                local scrollable = info.scrollable or false
-                local visOptions = (scrollable and info.vis) or #options
-                local flag = info.flag or ""
-                local pointer = tab.name .. section.name .. name
-                local callback = info.callback or function() end
-
-                local dropdown = {name = name, multi = multi, options = options, value = def, minOptions = minOptions, scrollable = scrollable, visOptions = visOptions, scrolling = {1, visOptions}, instances = {}, callback = callback, flag = flag, pointer = pointer}
-
-                if pointer then
-                    library.pointers[pointer] = dropdown
-                end
-
-                local dropdown_title = utility:Draw("Text", v2new(6, self:NextObjectPosition() + 3), {
-                    Color = c3rgb(255, 255, 255),
-                    Outline = true,
-                    Size = 13,
-                    Font = 2,
-                    Text = name,
-                    Parent = section_frame
-                })
-
-                local dropdown_frame = utility:Draw("Square", v2new(0, 17), {
-                    Size = v2new(section_frame.Size.X - 12, 18),
-                    Color = window.theme.lcont,
-                    Group = "lcont",
-                    Parent = dropdown_title
-                })
-
-                local dropdown_outline = utility:Draw("Square", v2new(-1, -1), {
-                    Size = dropdown_frame.Size + v2new(2, 2),
-                    Color = window.theme.outline,
-                    Group = "outline",
-                    Filled = false,
-                    Parent = dropdown_frame
-                })
-
-                local dropdown_gradient = utility:Draw("Image", v2zero, {
-                    Size = dropdown_frame.Size,
-                    Transparency = 0.35,
-                    Parent = dropdown_frame
-                })
-
-                local dropdown_value = utility:Draw("Text", v2new(4, 2), {
-                    Color = c3rgb(255, 255, 255),
-                    Outline = true,
-                    Size = 13,
-                    Font = 2,
-                    Text = "shit vaLue",
-                    Parent = dropdown_frame
-                })
-
-                local dropdown_image = utility:Draw("Image", v2new(dropdown_frame.Size.X - 14, 6), {
-                    Size = v2new(9, 6),
-                    Parent = dropdown_frame
-                })
-
-                utility:Image(dropdown_gradient, "https://i.imgur.com/j9y4dux.png")
-                utility:Image(dropdown_image, "https://i.imgur.com/tVqy0nL.png")
-
-                function dropdown.Get(self)
-                    return self.value
-                end
-
-                function dropdown.Refresh(self, new)
-                    self.options = new
-                end
-
-                function dropdown.Open(self)
-
-                    self.scrolling[1] = 1
-                    self.scrolling[2] = self.visOptions
-                    
-                    local list_frame = utility:Draw("Square", v2new(0, 19), {
-                        Size = v2new(dropdown_frame.Size.X, 2+16*#self.options),
-                        Color = window.theme.dcont,
-                        Group = "dcont",
-                        Parent = dropdown_frame
-                    })
-
-                    if self.scrollable and #self.options > self.visOptions then
-                        list_frame.Size = v2new(dropdown_frame.Size.X, 2+16*self.visOptions)
-                    end
-
-                    local list_outline = utility:Draw("Square", v2new(-1, -1), {
-                        Size = list_frame.Size + v2new(2, 2),
-                        Color = window.theme.outline,
-                        Group = "outline",
-                        Filled = false,
-                        Parent = list_frame
-                    })
-
-                    local list_scrollbar = utility:Draw("Square", v2new(list_frame.Size.X-3, 0), {
-                        Size = v2new(3, list_frame.Size.Y/(#self.options - self.visOptions + 1)),
-                        Color = window.theme.accent,
-                        Group = "accent",
-                        Parent = list_frame
-                    })
-
-                    if not self.scrollable or (self.scrollable and #self.options <= self.visOptions) then
-                        list_scrollbar.Visible = false
-                    end
-
-                    self.instances = {list_frame, list_outline, list_scrollbar}
-
-                    for i, v in pairs(self.options) do
-                        local option_text = utility:Draw("Text", v2new(4, 2+16*(i-1)), {
-                            Color = (multi and table.find(self.value, v) or not multi and self.value == v) and window.theme.accent or c3rgb(255, 255, 255),
-                            Outline = true,
-                            Size = 13,
-                            Font = 2,
-                            Text = tostring(v),
-                            Parent = list_frame
-                        })
-
-                        if self.scrollable then
-                            if i >= self.scrolling[1] and i <= self.scrolling[2] then
-                                option_text.Visible = true
-                            else
-                                option_text.Visible = false
-                            end
-                        end
-
-                        table.insert(self.instances, option_text)
-                    end 
-
-                    utility:Image(dropdown_image, "https://i.imgur.com/SL9cbQp.png")
-
-                    window.shit.dropdown = dropdown
-                    
-                end
-
-                function dropdown.Close(self)
-                    for _, v in pairs(self.instances) do
-                        v.Remove()
-                    end
-
-                    self.instances = {}
-
-                    utility:Image(dropdown_image, "https://i.imgur.com/tVqy0nL.png")
-
-                    window.shit.dropdown = nil
-                end
-
-                function dropdown.GenerateValueName(self)
-                    if not self.multi then
-                        local text_size = utility:GetPlexSize(self.value)
-
-                        local max_size = dropdown_frame.Size.X - (4+16)
-
-                        if text_size < max_size then
-                            return self.value
-                        else
-                            return self.value:sub(1, 25) .. "..."
-                        end
-                    else
-                        local text = ""
-
-                        for i, v in pairs(self.value) do
-                            if i ~= #self.value then
-                                text = text .. v .. ", "
-                            else
-                                text = text .. v
-                            end
-                        end
-
-                        local text_size = utility:GetPlexSize(text)
-
-                        local max_size = dropdown_frame.Size.X - (4+16)
-
-                        if text_size < max_size then
-                            return text
-                        else
-                            return text:sub(1, 25) .. "..."
-                        end
-                    end
-                end
-
-                function dropdown.Update(self)
-                    dropdown_frame.Size = v2new(section_frame.Size.X - 12, 18)
-                    dropdown_outline.Size = dropdown_frame.Size + v2new(2, 2)
-                    dropdown_gradient.Size = dropdown_frame.Size
-                    dropdown_image.SetOffset(v2new(dropdown_frame.Size.X - 14, 6))
-
-                    if #self.instances > 1 then
-                        self.instances[1].Size = v2new(dropdown_frame.Size.X, self.instances[1].Size.Y)
-                        self.instances[2].Size = self.instances[1].Size + v2new(2, 2)
-
-                        for i, v in pairs({select(4, unpack(self.instances))}) do
-                            if multi and table.find(self.value, v.Text) or not multi and self.value == v.Text then
-                                v.Color = window.theme.accent
-                            else
-                                v.Color = c3rgb(255, 255, 255)
-                            end
-
-                            if self.scrollable then
-                                if i >= self.scrolling[1] and i <= self.scrolling[2] then
-                                    v.Visible = true
-
-                                    v.SetOffset(v2new(4, 2+16*(i-self.scrolling[1]))) 
-                                else
-                                    v.Visible = false
-                                end
-                            end
-                        end
-
-                        local max_y_pos = self.instances[1].Size.Y - self.instances[3].Size.Y
-                        
-                        self.instances[3].SetOffset(v2new(self.instances[1].Size.X-self.instances[3].Size.X, max_y_pos * ((1/(#self.options-self.visOptions))*(self.scrolling[1]-1))))
-                    end
-                end
-
-                function dropdown.Set(self, value)
-                    self.value = value
-
-                    dropdown_value.Text = self:GenerateValueName()
-
-                    library.flags[flag] = self.value
-
-                    self:Update()
-
-                    self.callback(self.value)
-                end
-
-                dropdown:Set(dropdown.value)
-
-                utility:Connect(uis.InputBegan, function(input)
-                    if input.UserInputType == Enum.UserInputType.MouseButton1 and main_frame.Visible and (tab.on or table.find(window.rna, section)) then
-                        if #dropdown.instances > 1 then
-                            if utility:MouseOverDrawing(dropdown.instances[1]) then
-                                local option_counter = (uis:GetMouseLocation().Y - (dropdown.instances[1].Position.Y+2))/16
-
-                                if option_counter%1 ~= 0 then
-                                    option_counter = math.floor(option_counter)+1
-                                end
-
-                                option_counter = option_counter > 0 and option_counter or 1
-
-                                if dropdown.scrollable then
-                                    option_counter = dropdown.scrolling[1] + option_counter - 1
-                                end
-
-                                if not dropdown.multi then
-                                    dropdown:Set(dropdown.options[option_counter])
-                                else
-                                    local value = dropdown.options[option_counter]
-
-                                    if table.find(dropdown.value, value) then
-                                        if #dropdown.value > dropdown.minOptions then
-                                            table.remove(dropdown.value, table.find(dropdown.value, value))
-                                        end
-                                    else
-                                        table.insert(dropdown.value, value)
-                                    end
-
-                                    dropdown:Set(dropdown.value)
-                                end
-                            else
-                                dropdown:Close()
-                            end
-                        else
-                            if not window:FakeRealMouseFuckingImAloneGoingToKillMyselfWithKnife(section) and utility:MouseOverPosition({section_frame.Position + v2new(0, dropdown_title.GetOffset().Y), section_frame.Position + v2new(section_frame.Size.X, dropdown_title.GetOffset().Y + 35)}) then
-                                dropdown:Open()
-                            end
-                        end
-                    end
-                end)
-
-                utility:Connect(uis.InputChanged, function(input)
-                    if input.UserInputType == Enum.UserInputType.MouseWheel and #dropdown.instances > 1 and utility:MouseOverDrawing(dropdown.instances[1]) and #dropdown.options > dropdown.visOptions then
-                        local direction = input.Position.Z > 0 and "up" or "down"
-                        
-                        local min, max = dropdown.scrolling[1], dropdown.scrolling[2]
-
-                        if direction == "up" then
-                            dropdown.scrolling[1] = min ~= 1 and min - 1 or min
-                            dropdown.scrolling[2] = min ~= 1 and max - 1 or max
-                        else
-                            dropdown.scrolling[1] = max ~= #dropdown.options and min + 1 or min
-                            dropdown.scrolling[2] = max ~= #dropdown.options and max + 1 or max
-                        end
-
-                        dropdown:Update()
-                    end
-                end)
-
-                self.instances = utility:Combine(self.instances, {dropdown_title, dropdown_frame, dropdown_outline, dropdown_gradient, dropdown_value, dropdown_image})
-                
-                self:UpdateScale(39)
-
-                table.insert(self.things.dropdowns, dropdown)
-
-                return dropdown
-                
-            end
-
-            function section.Keybind(self, info)
-                return self:_Keybind(info, {v2new(section_frame.Size.X - 46, self:NextObjectPosition() + 2), v2new(6, self:NextObjectPosition())}, section_frame, true, tab.name .. section.name .. info.name, section.name)
-            end
-
-            function section.Colorpicker(self, info)
-                return self:_Colorpicker(info, {v2new(section_frame.Size.X - 36, self:NextObjectPosition() + 2), v2new(6, self:NextObjectPosition())}, section_frame, true, tab.name .. section.name .. info.name, {})
-            end
-
-            function section.List(self, info)
-                info = info or {}
-
-                local name = info.name or "list"
-                local options = info.options or {"option 1", "option 2"}
-                local def = info.def or info.default or options[1]
-                local flag = info.flag
-                local pointer = info.pointer or tab.name .. section.name .. name 
-
-                local list = {name = name, value = def, scroll = {}, options = options, flag = flag, pointer = pointer, opinst = {}, lloop = nil}
-
-                if pointer then
-                    library.pointers[pointer] = list
-                end
-
-                local list_title = utility:Draw("Text", v2new(6, self:NextObjectPosition()-2), {
-                    Color = c3rgb(255, 255, 255),
-                    Outline = true,
-                    Size = 13,
-                    Font = 2,
-                    Text = name,
-                    Parent = section_frame
-                })
-
-                local list_frame = utility:Draw("Square", v2new(0, 15), {
-                    Color = window.theme.dcont,
-                    Group = "dcont",
-                    Size = v2new(section_frame.Size.X - 12, 140),
-                    Parent = list_title
-                })
-
-                local list_frame_outline = utility:Draw("Square", v2new(-1, -1), {
-                    Color = window.theme.outline,
-                    Group = "outline",
-                    Size = list_frame.Size + v2new(2, 2),
-                    Filled = false,
-                    Parent = list_frame
-                })
-
-                local list_frame_scrollbar = utility:Draw("Square", v2new(list_frame.Size.X-3, 0), {
-                    Color = window.theme.accent,
-                    Group = "accent",
-                    Size = v2new(3, 0),
-                    Parent = list_frame
-                })
-
-                function list.fix_string(self, value)
-                    local max_symbols = math.floor(list_frame.Size.X/7)
-
-                    return #value < max_symbols and value or value:sub(1, max_symbols-3) .. "..."
-                end
-
-                function list.draw_options(self)
-                    for i, v in pairs(self.opinst) do
-                        v.Remove()
-                    end
-
-                    table.clear(self.opinst)
-
-                    self.scroll = {1, 10}
-
-                    for i, text in pairs(self.options) do
-
-                        local list_option = utility:Draw("Text", v2new(3, (i-1)*14), {
-                            Color = self.value == text and window.theme.accent or c3rgb(255, 255, 255),
-                            Outline = true,
-                            Size = 13,
-                            Font = 2,
-                            Text = self:fix_string(text),
-                            Visible = i >= self.scroll[1] and i <= self.scroll[2],
-                            Parent = list_frame
-                        })
-
-                        table.insert(self.opinst, list_option)
-
-                    end
-
-                    section.instances = utility:Combine(section.instances, {unpack(self.opinst)})
-
-                    self:update()
-                end
-
-                function list.update(self)
-                    list_frame.Size = v2new(section_frame.Size.X - 12, 140)
-                    list_frame_outline.Size = list_frame.Size + v2new(2, 2)
-
-                    for i, v in pairs(self.opinst) do
-                        v.Visible = list_frame.Visible and i >= self.scroll[1] and i <= self.scroll[2]
-                        if v.Visible then
-                            v.Color = self.value == self.options[i] and window.theme.accent or c3rgb(255, 255, 255)
-                            v.SetOffset(v2new(3, (i - self.scroll[1])*14))
-                        end
-                    end
-
-                    list_frame_scrollbar.Visible = list_frame.Visible and #self.options > 10 and true or false
-                    list_frame_scrollbar.Size = v2new(3, list_frame.Size.Y / (1 + #self.options - 10))
-
-                    list_frame_scrollbar.SetOffset(v2new(list_frame.Size.X-3, ((1/(#self.options-10)*(self.scroll[1]-1)))*(list_frame.Size.Y-list_frame_scrollbar.Size.Y)))
-                end
-
-                function list.Refresh(self, new_options)
-                    self.options = new_options
-
-                    self:draw_options()
-                end
-
-                function list.Get(self)
-                    return self.value
-                end
-
-                function list.Set(self, value)
-                    self.value = value
-
-                    if self.flag then
-                        library.flags[flag] = self.value
-                    end
-
-                    self:update()
-                end
-
-                utility:Connect(uis.InputBegan, function(input)
-                    if input.UserInputType == Enum.UserInputType.MouseButton1 and main_frame.Visible and (tab.on or table.find(window.rna, section)) and not window:FakeRealMouseFuckingImAloneGoingToKillMyselfWithKnife(section) and utility:MouseOverDrawing(list_frame) then
-                        local offset = uis:GetMouseLocation().Y - list_frame.Position.Y
-
-                        local option_index = math.clamp(offset/14, 1, 10)
-
-                        if option_index % 1 ~= 0 then
-                            option_index = math.floor(option_index) + 1
-                        end
-
-                        local index = list.scroll[1] - 1 + option_index
-
-                        if list.options[index] then
-                            list:Set(list.options[index])
-                        end
-                    end
-                end)
-
-                utility:Connect(uis.InputChanged, function(input)
-                    if input.UserInputType == Enum.UserInputType.MouseWheel and main_frame.Visible and (tab.on or table.find(window.rna, section)) and not window:FakeRealMouseFuckingImAloneGoingToKillMyselfWithKnife(section) and utility:MouseOverDrawing(list_frame) then
-                        local direction = input.Position.Z > 0 and "up" or "down"
-                        
-                        local min, max = list.scroll[1], list.scroll[2]
-
-                        if direction == "up" then
-                            list.scroll[1] = min ~= 1 and min - 1 or min
-                            list.scroll[2] = min ~= 1 and max - 1 or max
-                        else
-                            list.scroll[1] = max ~= #list.options and min + 1 or min
-                            list.scroll[2] = max ~= #list.options and max + 1 or max
-                        end
-
-                        list:update()
-                    end
-                end)
-
-                list:draw_options()
-
-                self.instances = utility:Combine(self.instances, {list_title, list_frame, list_frame_outline, list_frame_scrollbar})
-
-                self:UpdateScale(153)
-
-                table.insert(self.things.lists, list)
-
-                return list
-            end
-
-            section.instances = {section_frame, section_inline, section_outline, section_title, section_title_bold, section_accent, section_accent2}
-
-            if not section.rna then
-                table.insert(self.sections, section)
-                table.insert(self.sides[side == "left" and 1 or 2], section)
-            end
-
-            return section
-        end
-
-        if self.sshit == nil then
-            self:SelectTab(name)
-        end
-
-        utility:Connect(uis.InputBegan, function(input)
-            if main_frame.Visible and input.UserInputType == Enum.UserInputType.MouseButton1 and utility:MouseOverDrawing(tab_frame) then
-                self:SelectTab(name)
-            end
+            setByConfig = false
         end)
 
-        return tab
-
+        if s then
+            self:SendNotification('Successfully loaded config: '..name, 5, c3new(0,1,0));
+        else
+            self:SendNotification('Error loading config: '..tostring(e)..'. ('..tostring(name)..')', 5, c3new(1,0,0));
+        end
     end
 
-    function window.Update(self)
-        for i, v in pairs(self.rna) do
-            v:Update()
+    function self:SaveConfig(name)
+        if not self:GetConfig(name) then
+            self:SendNotification('Error saving config: Config does not exist. ('..tostring(name)..')', 5, c3new(1,0,0));
+            return
         end
 
-        for i, v in pairs(self.tabs) do
-            if v == window.sshit then
-                v:Update()
-            else
-                v:UpdateColor()
+        local s,e = pcall(function()
+            local cfg = {};
+            for flag,option in next, self.options do
+                if option.class == 'toggle' then
+                    cfg[flag] = option.state and 1 or 0;
+                elseif option.class == 'slider' then
+                    cfg[flag] = option.value;
+                elseif option.class == 'bind' then
+                    cfg[flag] = option.bind.Name;
+                elseif option.class == 'color' then
+                    cfg[flag] = {
+                        option.color.r,
+                        option.color.g,
+                        option.color.b,
+                        option.trans,
+                    }
+                elseif option.class == 'list' then
+                    cfg[flag] = option.selected;
+                elseif option.class == 'box' then
+                    cfg[flag] = option.input
+                end
             end
+            writefile(self.cheatname..'/'..self.gamename..'/configs/'..name..self.fileext, http:JSONEncode(cfg));
+        end)
+
+        if s then
+            self:SendNotification('Successfully saved config: '..name, 5, c3new(0,1,0));
+        else
+            self:SendNotification('Error saving config: '..tostring(e)..'. ('..tostring(name)..')', 5, c3new(1,0,0));
         end
     end
 
-    function window.FakeRealMouseFuckingImAloneGoingToKillMyselfWithKnife(self, section)
-        if self.shit.dropdown ~= nil and #self.shit.dropdown.instances > 1 then
-            return utility:MouseOverDrawing(self.shit.dropdown.instances[1])
-        elseif self.shit.keybind ~= nil and #self.shit.keybind.minst > 1 then
-            return utility:MouseOverDrawing(self.shit.keybind.minst[1])
-        elseif self.shit.colorpicker ~= nil and #self.shit.colorpicker.instances > 1 then
-            return utility:MouseOverDrawing(self.shit.colorpicker.instances[1])
+    for i,v in next, self.images do
+        if not isfile(self.cheatname..'/assets/'..i..'.oh') then
+            writefile(self.cheatname..'/assets/'..i..'.oh', game:HttpGet(v))
         end
-
-        if not table.find(window.rna, section) then
-            local on = false
-
-            for i, v in pairs(window.rna) do
-                if on then break end
-
-                on = utility:MouseOverDrawing(v.instances[1])
-            end
-
-            return on
-        end
-        return false
+        self.images[i] = readfile(self.cheatname..'/assets/'..i..'.oh');
     end
 
-    function window.NewTheme(self, theme)
-        self.theme = theme
-
-        for i, _ in pairs(self.theme) do
-            for _, obj in pairs(library.groups[i]) do
-                obj.Color = self.theme[i]
-            end
-        end
-
-        self:Update()
-    end
-
-    function window.SelectTab(self, name)
-
-        if self.fading then return end
-
-        for i, v in pairs(self.tabs) do
-            if v.instances[3].Text == name then
-                v:Show()
-                v:Update()
-
-                self.sshit = v
-            else
-                v:Hide()
-            end
-        end
-
-        for _, v in pairs(self.connections["tab"] or {}) do
-            v(name)
+    self.cursor1 = utility:Draw('Triangle', {Filled = true, Color = fromrgb(255,255,255), ZIndex = self.zindexOrder.cursor});
+    self.cursor2 = utility:Draw('Triangle', {Filled = true, Color = fromrgb(85,85,85), self.zindexOrder.cursor-1});
+    local function updateCursor()
+        self.cursor1.Visible = self.open
+        self.cursor2.Visible = self.open
+        if self.cursor1.Visible then
+            local pos = inputservice:GetMouseLocation();
+            self.cursor1.PointA = pos;
+            self.cursor1.PointB = pos + newVector2(16,5);
+            self.cursor1.PointC = pos + newVector2(5,16);
+            self.cursor2.PointA = self.cursor1.PointA + newVector2(0, 0)
+            self.cursor2.PointB = self.cursor1.PointB + newVector2(1, 1)
+            self.cursor2.PointC = self.cursor1.PointC + newVector2(1, 1)
         end
     end
 
-    function window.Resize(self, size)
-        main_frame.Size = size
-        main_frame_outline.Size = main_frame.Size + v2new(2, 2)
-        main_frame_accent.Size = main_frame.Size + v2new(4, 4)
+    local screenGui = Instance.new('ScreenGui');
+    if syn then syn.protect_gui(screenGui); end
+    screenGui.Parent = game:GetService('CoreGui');
+    screenGui.Enabled = true;
+    utility:Instance('ImageButton', {
+        Parent = screenGui,
+        Visible = true,
+        Modal = true,
+        Size = UDim2.new(1,0,1,0),
+        ZIndex = 9999999999,
+        Transparency = 1;
+    })
 
-        pretab_frame.Size = size - v2new(12, 26)
-        pretab_frame_inline.Size = pretab_frame.Size + v2new(2, 2)
-        pretab_frame_outline.Size = pretab_frame.Size + v2new(4, 4)
+    utility:Connection(library.unloaded, function()
+        screenGui:Destroy()
+    end)
 
-        tabs_frame.Size = size - v2new(24, 55)
-        tabs_frame_outline.Size = tabs_frame.Size + v2new(2, 2)
-
-        self:Update()
-    end
-
-    function window.HideUselessDumbassFuckingShitStopPastingMyCodePleaseYouAreSkidAndImGayILikeBigBlackManOkNoProblemThisIsASexcretFuncteiotieitns4epoivi2n45obvi6j45bv74gvho4hgv487(self)
-        if self.shit.dropdown then
-            self.shit.dropdown:Close()
-        elseif self.shit.textbox then
-            self.shit.textbox:Stop()
-        elseif self.shit.keybind then
-            self.shit.keybind:Close()
-        elseif self.shit.colorpicker then
-            self.shit.colorpicker:Close()
-        end
-    end
-
-    function window.GetFakeRealNoobConfigFunctionDontUseMe(self)
-        local new_table = {}
-
-        for i, v in pairs(library.pointers) do
-            new_table[i] = v:Get()
-        end
-
-        new_table["animation_saved"] = self.saved_settings
-
-        return game:GetService("HttpService"):JSONEncode(new_table)
-    end
-
-    function window.BestFunctionToKillMyselfFurryGayPornFemboyDildoMasterAloneWolfMode(self, IHATEMYSELFFUCKINGIWANTTODIEIMUSELESSINTHISLIFENOBODYLIKESME)
-        for USELESSNAMEFORNONAMERIHATEMYSELF, SHITTYVALUEFORNOBODYCAUSEIMALONEIMSODUMBFUCKINGUSELESS in pairs(IHATEMYSELFFUCKINGIWANTTODIEIMUSELESSINTHISLIFENOBODYLIKESME) do
-            if library.pointers[USELESSNAMEFORNONAMERIHATEMYSELF] then
-                library.pointers[USELESSNAMEFORNONAMERIHATEMYSELF]:Set(SHITTYVALUEFORNOBODYCAUSEIMALONEIMSODUMBFUCKINGUSELESS)
-            end
-        end
-
-        self.saved_settings = IHATEMYSELFFUCKINGIWANTTODIEIMUSELESSINTHISLIFENOBODYLIKESME["animation_saved"] or {}
-    end
-
-    function window.SetSecretFunctionNameNotWindowNameClickGrabifyPNEK8UPleaseBotlagArgyyyHaxx(self, newsecretpropertyname)
-        main_frame_title.Text = newsecretpropertyname 
-    end
-
-    function window.Fade(self)
-        if self.fading then return end
-
-        for i, v in pairs(self.connections["fade"] or {}) do
-            v(not main_frame.Visible)
-        end
-
-        local fade_instances = utility:Combine(library.fade_instances, {
-            main_frame, main_frame_accent, main_frame_title, main_frame_outline,
-            pretab_frame, pretab_frame_inline, pretab_frame_outline,
-            tabs_frame, tab_frame_accent, tabs_frame_outline
-        })
-
-        if self.cursor then
-            fade_instances = utility:Combine(fade_instances, self.cursor.instances)
-        end
-
-        for i, v in pairs(self.tabs) do
-            fade_instances = utility:Combine(fade_instances, v.instances)
-        end
-
-        for i, v in pairs(self.rna) do
-            fade_instances = utility:Combine(fade_instances, v.instances)
-        end
-
-        if self.sshit then
-            for _, s in pairs(self.sshit.sections) do
-                fade_instances = utility:Combine(fade_instances, s.instances)
-            end
-        end
-
-        if main_frame.Visible then
-            self.fading = true
-
-            if self.tooltip then
-                self.tooltip:SetPosition(v2new(-1000, -1000))
-            end
-
-            for i, v in pairs(fade_instances) do
-                v.Lerp({Transparency = 0}, 0.2)
-
-                task.delay(0.2, function()
-                    v.Visible = false
-
-                    self.fading = false
+    utility:Connection(inputservice.InputBegan, function(input, gpe)
+        if self.hasInit then
+            if input.KeyCode == self.toggleKey and not library.opening and not gpe then
+                self:SetOpen(not self.open)
+                task.spawn(function()
+                    library.opening = true;
+                    task.wait(.15);
+                    library.opening = false;
                 end)
             end
+            if library.open then
+                local hoverObj = utility:GetHoverObject();
+                local hoverObjData = library.drawings[hoverObj];
+                if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                    mb1down = true;
+                    button1down:Fire()
+                    if hoverObj and hoverObjData then
+                        hoverObjData.MouseButton1Down:Fire(inputservice:GetMouseLocation())
+                    end
 
-            uis.MouseIconEnabled = true
-        else
-            self.fading = true
+                    -- // Update Sliders Click
+                    if library.draggingSlider ~= nil then
+                        local rel = inputservice:GetMouseLocation() - library.draggingSlider.objects.background.Object.Position;
+                        local val = utility:ConvertNumberRange(rel.X, 0 , library.draggingSlider.objects.background.Object.Size.X, library.draggingSlider.min, library.draggingSlider.max);
+                        library.draggingSlider:SetValue(val)
+                    end
 
-            for i, v in pairs(fade_instances) do
-                v.Visible = true
-                v.Transparency = 0
-
-                v.Lerp({Transparency = v:getDefaultTransparency()}, 0.2)
+                elseif input.UserInputType == Enum.UserInputType.MouseButton2 then
+                    if hoverObj and hoverObjData then
+                        hoverObjData.MouseButton2Down:Fire(inputservice:GetMouseLocation())
+                    end
+                end
             end
-
-            task.delay(0.2, function()
-                self.fading = false
-            end)
-
-            local from = tick()
-
-            uis.MouseIconEnabled = false
         end
+    end)
 
-        self:Update()
+    utility:Connection(inputservice.InputEnded, function(input, gpe)
+        if self.hasInit and library.open then
+            local hoverObj = utility:GetHoverObject();
+            local hoverObjData = library.drawings[hoverObj];
 
-        self:HideUselessDumbassFuckingShitStopPastingMyCodePleaseYouAreSkidAndImGayILikeBigBlackManOkNoProblemThisIsASexcretFuncteiotieitns4epoivi2n45obvi6j45bv74gvho4hgv487()
-    end
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                mb1down = false;
+                button1up:Fire();
+                if hoverObj and hoverObjData then
+                    hoverObjData.MouseButton1Up:Fire(inputservice:GetMouseLocation())
+                end
+            elseif input.UserInputType == Enum.UserInputType.MouseButton2 then
+                if hoverObj and hoverObjData then
+                    hoverObjData.MouseButton2Up:Fire(inputservice:GetMouseLocation())
+                end
+            end
+        end
+    end)
 
-    function window.Notifications(self)
+    utility:Connection(inputservice.InputChanged, function(input, gpe)
+        if input.UserInputType == Enum.UserInputType.MouseMovement then
+            if library.open then
+                mousemove:Fire(inputservice:GetMouseLocation());
+                updateCursor();
 
-        local notiflist = {ntifs = {}, interval = 7}
+                if library.CurrentTooltip ~= nil then
+                    local mousePos = inputservice:GetMouseLocation()
+                    tooltipObjects.background.Position = UDim2.new(0,mousePos.X + 15,0,mousePos.Y + 15)
+                    tooltipObjects.background.Size = UDim2.new(0,tooltipObjects.text.TextBounds.X + 6 + (library.CurrentTooltip.risky and 60 or 0),0,tooltipObjects.text.TextBounds.Y + 2)
+                end
 
-        function notiflist.new(self, info)
-
-            info = info or {}
-
-            local text = info.text or "notification"
-            local dur = info.dur or info.duration or 3
-            local show_dur_bar = info.show_dur_bar or info.sdb or true
-            local pulse = info.pulse or false
-            local pulse_color = info.pulsecolor or info.pulse_color or info.pc or {c3rgb(0, 0, 0), c3rgb(194, 164, 16)}
-            local text_highlight = info.th or info.text_highlight or {}
-
-            local ntif = {text = text, dur = dur, pulse = pulse, pc = pulse_color, pm = 1, ptick = 0, create_tick = tick(), sdb = show_dur_bar, instances = {}}
-
-            local ntif_frame = utility:Draw("Square", nil, {
-                Color = window.theme.lcont,
-                Group = "lcont",
-                Size = v2new(7 + utility:GetPlexSize(text), 4 + (#text:split("\n")*13)),
-                Position = v2new(-utility:GetPlexSize(text), 0)
-            }, true)
-
-            if #text:split("\n") > 1 then
-                local max = 0
-                for i, v in pairs(text:split("\n")) do
-                    if utility:GetPlexSize(v) > max then
-                        max = utility:GetPlexSize(v)
+                local hoverObj = utility:GetHoverObject();
+                for _,v in next, library.drawings do
+                    local hover = hoverObj == v.Object;
+                    if hover and not v.Hover then
+                        v.Hover = true;
+                        v.MouseEnter:Fire(inputservice:GetMouseLocation());
+                    elseif not hover and v.Hover then
+                        v.Hover = false;
+                        v.MouseLeave:Fire(inputservice:GetMouseLocation());
                     end
                 end
 
-                ntif_frame.Size = v2new(5 + max, ntif_frame.Size.Y)
-                ntif_frame.Position = v2new(-max, 0)
+                if mb1down then
+
+                    -- // Update Sliders Drag
+                    if library.draggingSlider ~= nil then
+                        local rel = inputservice:GetMouseLocation() - library.draggingSlider.objects.background.Object.Position;
+                        local val = utility:ConvertNumberRange(rel.X, 0 , library.draggingSlider.objects.background.Object.Size.X, library.draggingSlider.min, library.draggingSlider.max);
+                        library.draggingSlider:SetValue(val)
+                    end
+
+                end
             end
-
-            local ntif_frame_outline = utility:Draw("Square", v2new(-1, -1), {
-                Color = window.theme.outline,
-                Group = "outline",
-                Size = ntif_frame.Size + v2new(2, 2),
-                Filled = false,
-                Parent = ntif_frame
-            }, true)
-
-            local ntif_text = utility:Draw("Text", v2new(5, 2), {
-                Color = c3rgb(255, 255, 255),
-                Outline = true,
-                Size = 13,
-                Font = 2,
-                Text = ntif.text,
-                Parent = ntif_frame
-            }, true)
-
-            local ntif_dur_line = utility:Draw("Square", v2new(0, ntif_frame.Size.Y), {
-                Color = window.theme.accent,
-                Group = "accent",
-                Size = v2new(ntif_frame.Size.X / 5, 1),
-                Visible = ntif.sdb,
-                Parent = ntif_frame
-            }, true)
-
-            local ntif_accent = utility:Draw("Square", v2zero, {
-                Size = v2new(2, ntif_frame.Size.Y),
-                Color = not ntif.pulse and window.theme.accent or ntif.pc[1],
-                Group = "accent",
-                Parent = ntif_frame
-            }, true)
-
-            local highligted = {}
-
-            for _, v in pairs(text_highlight) do
-                local s, e = ntif.text:find(v[1])
-
-                if s and e then
-                    local ntif_high = utility:Draw("Text", v2new((s-1)*7, 0), {
-                        Color = v[2],
-                        Outline = true,
-                        Size = 13,
-                        Font = 2,
-                        Text = ntif.text:sub(s, e),
-                        Parent = ntif_text
-                    }, true)
+        end
+    end)
     
-                    table.insert(highligted, ntif_high)
+    function self:SetOpen(bool)
+        self.open = bool;
+        screenGui.Enabled = bool;
+
+        if bool and library.flags.disablemenumovement then
+            actionservice:BindAction(
+                'FreezeMovement',
+                function()
+                    return Enum.ContextActionResult.Sink
+                end,
+                false,
+                unpack(Enum.PlayerActions:GetEnumItems())
+            )
+        else
+            actionservice:UnbindAction('FreezeMovement');
+        end
+
+        updateCursor();
+        for _,window in next, self.windows do
+            window:SetOpen(bool);
+        end
+
+        library.CurrentTooltip = nil;
+        tooltipObjects.background.Visible = false
+    end
+
+    function self.UpdateThemeColors()
+        for _,v in next, library.drawings do
+            if v.ThemeColor and library.theme[v.ThemeColor] then
+                v.Object.Color = utility:AddRGB(library.theme[v.ThemeColor],fromrgb(v.ThemeColorOffset,v.ThemeColorOffset,v.ThemeColorOffset))
+            end
+            if v.ThemeColorOutline and library.theme[v.ThemeColorOutline] then
+                v.Object.OutlineColor = utility:AddRGB(library.theme[v.ThemeColorOutline],fromrgb(v.OutlineThemeColorOffset,v.OutlineThemeColorOffset,v.OutlineThemeColorOffset))
+            end
+        end
+    end
+
+    function self:SendNotification(message, time, color)
+        time = time or 5
+        if typeof(message) ~= 'string' then
+            return error(string.format('invalid message type, got %s, expected string', typeof(message)))
+        elseif typeof(time) ~= 'number' then
+            return error(string.format('invalid time type, got %s, expected number', typeof(time)))
+        elseif color ~= nil and typeof(color) ~= 'Color3' then
+            return error(string.format('invalid color type, got %s, expected color3', typeof(time)))
+        end
+
+        local notification = {};
+
+        self.notifications[notification] = true
+
+        do
+            local objs = notification;
+            local z = self.zindexOrder.notification;
+
+            notification.holder = utility:Draw('Square', {
+                Position = newUDim2(0, 0, 0, 75);
+                Transparency = 0;
+            })
+            
+            notification.background = utility:Draw('Square', {
+                Size = newUDim2(1,0,1,0);
+                Position = newUDim2(0, -500, 0, 0);
+                Parent = notification.holder;
+                ThemeColor = 'Background';
+                ZIndex = z;
+            })
+
+            notification.border1 = utility:Draw('Square', {
+                Size = newUDim2(1,2,1,2);
+                Position = newUDim2(0,-1,0,-1);
+                ThemeColor = 'Border 2';
+                Parent = notification.background;
+                ZIndex = z-1;
+            })
+
+            objs.border2 = utility:Draw('Square', {
+                Size = newUDim2(1,2,1,2);
+                Position = newUDim2(0,-1,0,-1);
+                ThemeColor = 'Border 3';
+                Parent = objs.border1;
+                ZIndex = z-2;
+            })
+
+            notification.gradient = utility:Draw('Image', {
+                Size = newUDim2(1,0,1,0);
+                Data = self.images.gradientp90;
+                Parent = notification.background;
+                Transparency = .5;
+                ZIndex = z+1;
+            })
+
+            notification.accentBar = utility:Draw('Square',{
+                Size = newUDim2(0,5,1,4);
+                Position = newUDim2(0,0,0,-2);
+                Parent = notification.background;
+                ThemeColor = color == nil and 'Accent' or '';
+                ZIndex = z+5;
+            })
+
+            notification.text = utility:Draw('Text', {
+                Position = newUDim2(0,13,0,2);
+                ThemeColor = 'Primary Text';
+                Text = message;
+                Outline = true;
+                Font = 2;
+                Size = 13;
+                ZIndex = z+4;
+                Parent = notification.background;
+            })
+
+            if color then
+                notification.accentBar.Color = color;
+            end
+
+        end
+
+        function notification:Remove()
+            library.notifications[notification] = nil;
+            self.holder:Remove();
+            library:UpdateNotifications()
+        end
+
+        task.spawn(function()
+            self:UpdateNotifications();
+            notification.background.Size = newUDim2(0, notification.text.TextBounds.X + 20, 0, 19)
+            task.wait();
+            utility:Tween(notification.background, 'Position', newUDim2(0,0,0, 0), .1);
+            task.wait(time);
+            for i,v in next, notification do
+                if typeof(v) ~= 'function' then
+                    utility:Tween(v, 'Transparency', 0, .15);
+                end
+            end
+            utility:Connection(utility:Tween(notification.background, 'Position', newUDim2(0,-500,0, 0), .25).Completed, (function()
+                notification:Remove();
+            end))
+        end)
+
+    end
+
+    function self:UpdateNotifications()
+        local i = 0
+        for v in next, self.notifications do
+            utility:Tween(v.holder, 'Position', newUDim2(0,0,0, 75 + (i * 30)), .15)
+            i += 1
+        end
+    end
+
+    function self.NewIndicator(data)
+        local indicator = {
+            title = data.title or 'indicator',
+            enabled = data.enabled or false,
+            position = data.position or newUDim2(0,15,0,300),
+            values = {},
+            objects = {valueObjects = {}},
+            spacing = '   ',
+        };
+
+        table.insert(self.indicators, indicator)
+
+        -- Create Objects --
+        do
+            local z = self.zindexOrder.indicator;
+            local objs = indicator.objects;
+
+            objs.background = utility:Draw('Square', {
+                Size = newUDim2(0, 200, 0, 16);
+                Position = indicator.position;
+                ThemeColor = 'Background';
+                ZIndex = z;
+            })
+
+            objs.border1 = utility:Draw('Square', {
+                Size = newUDim2(1,2,1,2);
+                Position = newUDim2(0,-1,0,-1);
+                ThemeColor = 'Border 2';
+                Parent = objs.background;
+                ZIndex = z-1;
+            })
+
+            objs.border2 = utility:Draw('Square', {
+                Size = newUDim2(1,2,1,2);
+                Position = newUDim2(0,-1,0,-1);
+                ThemeColor = 'Border 3';
+                Parent = objs.border1;
+                ZIndex = z-2;
+            })
+
+            objs.topborder = utility:Draw('Square', {
+                Size = newUDim2(1,0,0,1);
+                ThemeColor = 'Accent';
+                Parent = objs.background;
+                ZIndex = z+1;
+            })
+
+            objs.textlabel = utility:Draw('Text', {
+                Position = newUDim2(.5,0,0,1);
+                ThemeColor = 'Primary Text';
+                Text = indicator.title;
+                Size = 13;
+                Font = 2;
+                ZIndex = z+2;
+                Center = true;
+                Outline = true;
+                Parent = objs.background;
+            });
+
+        end
+        --------------------
+
+        function indicator:Update()
+            local xSize  = 125
+            local yPos  = 0
+            table.sort(self.values, function(a,b)
+                return a.order < b.order;
+            end)
+
+            for _,v in next, self.values do
+                v.objects.keyLabel.Text = tostring(v.key);
+                v.objects.valueLabel.Text = tostring(v.value);
+            
+                v.objects.valueLabel.Position = newUDim2(1,-(v.objects.valueLabel.TextBounds.X + 3),0,0)
+                v.objects.background.Position = newUDim2(0,0,1,3 + yPos)
+                v.objects.background.Visible = v.enabled
+
+                if v.enabled then
+                    yPos = yPos + 16 + 3
+                    local x = (v.objects.keyLabel.TextBounds.X + 10 + v.objects.valueLabel.TextBounds.X)
+                    if x > xSize then
+                        xSize = x
+                    end
                 end
             end
 
-            ntif.lupapupa = utility:Connect(rs.Heartbeat, function()
-                if ntif.sdb then
-                    ntif_dur_line.SetOffset(v2new(((tick()-ntif.create_tick) / ntif.dur) * (ntif_frame.Size.X * 0.8), ntif_frame.Size.Y))
+            self.objects.background.Size = newUDim2(0,xSize + 8,0,16)
+            self.objects.background.Position = self.position
+        end
+
+        function indicator:AddValue(data)
+            local value = {
+                key = data.key or '',
+                value = data.value or '',
+                order = data.order or #self.values+1,
+                enabled = data.enabled == nil and true or data.enabled,
+                objects = {},
+            }
+
+            table.insert(self.values, value);
+
+            -- Create Objects --
+            do
+                local z = library.zindexOrder.indicator;
+                local objs = value.objects;
+
+                objs.background = utility:Draw('Square', {
+                    Size = newUDim2(1, 0, 0, 16);
+                    ThemeColor = 'Background';
+                    ZIndex = z;
+                    Parent = indicator.objects.background;
+                })
+    
+                objs.border1 = utility:Draw('Square', {
+                    Size = newUDim2(1,2,1,2);
+                    Position = newUDim2(0,-1,0,-1);
+                    ThemeColor = 'Border 2';
+                    Parent = objs.background;
+                    ZIndex = z-1;
+                })
+    
+                objs.border2 = utility:Draw('Square', {
+                    Size = newUDim2(1,2,1,2);
+                    Position = newUDim2(0,-1,0,-1);
+                    ThemeColor = 'Border 3';
+                    Parent = objs.border1;
+                    ZIndex = z-2;
+                })
+    
+                objs.keyLabel = utility:Draw('Text', {
+                    Position = newUDim2(0,3,0,1);
+                    ThemeColor = 'Option Text 2';
+                    Size = 13;
+                    Font = 2;
+                    ZIndex = z+2;
+                    Outline = true;
+                    Parent = objs.background;
+                });
+
+                objs.valueLabel = utility:Draw('Text', {
+                    Position = newUDim2(0,0,0,1);
+                    ThemeColor = 'Option Text 2';
+                    Size = 13;
+                    Font = 2;
+                    ZIndex = z+2;
+                    Outline = true;
+                    Parent = objs.background;
+                });
+
+            end
+            --------------------
+
+            function value:Remove()
+                table.remove(indicator.values, table.find(indicator.values, value))
+                self.objects.background:Remove()
+                table.clear(self)
+                indicator:Update();
+            end
+
+            function value:SetEnabled(bool)
+                if typeof(bool) == 'boolean' then
+                    self.enabled = bool
+                    indicator:Update()
                 end
+            end
 
-                if ntif.pulse then
-                    if tick()-ntif.ptick > 0.5 then
-                        ntif.ptick = tick()
+            function value:SetValue(str)
+                if typeof(str) == 'string' then
+                    self.value = str
+                    indicator:Update()
+                end
+            end
 
-                        if ntif.pm == 1 then
-                            ntif.pm = 2
+            function value:SetKey(str)
+                if typeof(str) == 'string' then
+                    self.key = str
+                    indicator:Update()
+                end
+            end
 
-                            ntif_accent.Lerp({Color = ntif.pc[ntif.pm]}, 0.5)
-                        else
-                            ntif.pm = 1
+            self:Update()
+            return value
+        end
 
-                            ntif_accent.Lerp({Color = ntif.pc[ntif.pm]}, 0.5)
-                        end
+        function indicator:GetValue(idx)
+            if typeof(idx) == 'number' then
+                return self.values[idx]
+            else
+                for i,v in next, self.values do
+                    if v.key == idx then
+                        return v
                     end
                 end
+            end
+        end
 
-                if tick()-ntif.create_tick > ntif.dur - 0.2 and not ntif.did_set then
-                    ntif.did_set = true
+        function indicator:SetEnabled(bool)
+            if typeof(bool) == 'boolean' then
+                self.enabled = bool;
+                self.objects.background.Visible = bool;
+                self:Update();
+            end
+        end
 
-                    ntif:idontlikemylifesucidepleasesomebodykillme()
+        function indicator:SetPosition(udim2)
+            if typeof(udim2) == 'UDim2' then
+                self.position = udim2
+                self.objects.background.Position = udim2;
+            end
+        end
+
+        for i,v in next, data.values or {} do
+            indicator:AddValue({key = tostring(i), value = tostring(v)})
+        end
+
+        indicator:SetEnabled(indicator.enabled);
+        return indicator
+    end
+
+    function self.NewWindow(data)
+        local window = {
+            title = data.title or '',
+            selectedTab = nil;
+            tabs = {},
+            objects = {},
+            colorpicker = {
+                objects = {};
+                color = c3new(1,0,0);
+                trans = 0;
+            };
+            dropdown = {
+                objects = {
+                    values = {};
+                };
+                max = 5;
+            }
+        };
+
+        table.insert(library.windows, window);
+
+        ----- Create Objects ----
+        do
+            local size = data.size or newUDim2(0, 525, 0, 650);
+            local position = data.position or newUDim2(0, 250, 0, 150);
+            local objs = window.objects;
+            local z = library.zindexOrder.window;
+
+            objs.background = utility:Draw('Square', {
+                Size = size;
+                Position = position;
+                ThemeColor = 'Background';
+                ZIndex = z;
+            })
+
+            objs.innerBorder1 = utility:Draw('Square', {
+                Size = newUDim2(1,2,1,2);
+                Position = newUDim2(0,-1,0,-1);
+                ThemeColor = 'Border 3';
+                ZIndex = z-1;
+                Parent = objs.background;
+            })
+
+            objs.innerBorder2 = utility:Draw('Square', {
+                Size = newUDim2(1,2,1,2);
+                Position = newUDim2(0,-1,0,-1);
+                ThemeColor = 'Border 1';
+                ZIndex = z-2;
+                Parent = objs.innerBorder1;
+            })
+
+            objs.midBorder = utility:Draw('Square', {
+                Size = newUDim2(1,10,1,25);
+                Position = newUDim2(0,-5,0,-20);
+                ThemeColor = 'Border 2';
+                ZIndex = z-3;
+                Parent = objs.innerBorder2;
+            })
+
+            objs.outerBorder1 = utility:Draw('Square', {
+                Size = newUDim2(1,2,1,2);
+                Position = newUDim2(0,-1,0,-1);
+                ThemeColor = 'Border 1';
+                ZIndex = z-4;
+                Parent = objs.midBorder;
+            })
+
+            objs.outerBorder2 = utility:Draw('Square', {
+                Size = newUDim2(1,2,1,2);
+                Position = newUDim2(0,-1,0,-1);
+                ThemeColor = 'Border 3';
+                ZIndex = z-5;
+                Parent = objs.outerBorder1;
+            })
+
+            objs.topBorder = utility:Draw('Square', {
+                Size = newUDim2(1,0,0,1);
+                ThemeColor = 'Accent';
+                ZIndex = z+1;
+                Parent = objs.background;
+            })
+
+            objs.title = utility:Draw('Text', {
+                Position = newUDim2(0,7,0,2);
+                ThemeColor = 'Primary Text';
+                Text = window.title;
+                Font = 2;
+                Size = 13;
+                ZIndex = z+1;
+                Outline = true;
+                Parent = objs.midBorder;
+            })
+
+            objs.groupBackground = utility:Draw('Square', {
+                Size = newUDim2(1,-16,1,-(16+23));
+                Position = newUDim2(0,8,0,8+23);
+                ThemeColor = 'Group Background';
+                ZIndex = z+5;
+                Parent = objs.background;
+            })
+
+            objs.groupInnerBorder = utility:Draw('Square', {
+                Size = newUDim2(1,2,1,2);
+                Position = newUDim2(0,-1,0,-1);
+                ThemeColor = 'Border 1';
+                ZIndex = z+4;
+                Parent = objs.groupBackground;
+            })
+
+            objs.groupOuterBorder = utility:Draw('Square', {
+                Size = newUDim2(1,2,1,2);
+                Position = newUDim2(0,-1,0,-1);
+                ThemeColor = 'Border 3';
+                ZIndex = z+3;
+                Parent = objs.groupInnerBorder;
+            })
+
+            objs.tabHolder = utility:Draw('Square', {
+                Size = newUDim2(1,0,0,20);
+                Position = newUDim2(0,0,0,-21);
+                Parent = objs.groupBackground;
+                Transparency = 0;
+                ZIndex = z+1;
+            })
+
+            objs.columnholder1 = utility:Draw('Square', {
+                Size = newUDim2(.48, 0, .96, 0);
+                Position = newUDim2(.01, 0, .02, 0);
+                Transparency = 0;
+                ZIndex = z+6;
+                Parent = objs.groupBackground;
+            })
+
+            objs.columnholder2 = utility:Draw('Square', {
+                Size = newUDim2(.48, 0, .96, 0);
+                Position = newUDim2(1 - (.48 + .01), 0, .02, 0);
+                Transparency = 0;
+                ZIndex = z+6;
+                Parent = objs.groupBackground;
+            })
+
+
+            objs.dragdetector = utility:Draw('Square',{
+                Size = newUDim2(1,0,1,0);
+                Parent = objs.midBorder;
+                Transparency = 0;
+                ZIndex = z+2;
+            })
+
+            local dragging, mouseStart, objStart;
+
+            utility:Connection(objs.dragdetector.MouseButton1Down, function(pos)
+                dragging = true;
+                mouseStart = newUDim2(0, pos.X, 0, pos.Y);
+                objStart = objs.background.Position;
+            end)
+
+            utility:Connection(button1up, function()
+                dragging = false;
+            end)
+
+            utility:Connection(mousemove, function(pos)
+                if dragging then
+                    if window.open then
+                        objs.background.Position = objStart + newUDim2(0, pos.X, 0, pos.Y) - mouseStart;
+                    else
+                        dragging = false
+                    end
                 end
             end)
 
-            function ntif.idontlikemylifesucidepleasesomebodykillme(self)
-                for i, v in pairs(self.instances) do
-                    v.Lerp({Transparency = 0}, 0.2)
-                end
-
-                task.wait(0.2)
-
-                for i, v in pairs(self.instances) do
-                    v.Remove()
-                end
-
-                if self.lupapupa then
-                    self.lupapupa:Disconnect()
-                end
-
-                table.remove(notiflist.ntifs, table.find(notiflist.ntifs, ntif))
-
-                notiflist:reposition()
-            end
-
-            ntif.instances = {ntif_frame, ntif_frame_outline, ntif_text, ntif_dur_line, ntif_accent, unpack(highligted)}
-
-            table.insert(self.ntifs, ntif)
-
-            self:reposition()
-            
         end
+        -------------------------
 
-        function notiflist.reposition(self)
-            local position_to_go = 60 + self.interval
-            for i, v in pairs(self.ntifs) do
-                local position = v2new(19, position_to_go)
+        -- Create Color Picker --
+        do
+            -- Objects
+            do
+                local objs = window.colorpicker.objects;
+                local z = library.zindexOrder.colorpicker;
 
-                local lerp_table = {Position = position}
+                objs.background = utility:Draw('Square', {
+                    Visible = false;
+                    Size = newUDim2(0,200,0,242);
+                    Position = newUDim2(1,-200,1,10);
+                    ThemeColor = 'Background';
+                    ZIndex = z;
+                    Parent = window.objects.background;
+                })
 
-                if v.instances[1].Position.X < 0 then
-                    v.instances[1].Position = position + v2new(-4, 7)
+                objs.border1 = utility:Draw('Square', {
+                    Size = newUDim2(1,2,1,2);
+                    Position = newUDim2(0,-1,0,-1);
+                    ThemeColor = 'Border';
+                    ZIndex = z-1;
+                    Parent = objs.background;
+                })
 
-                    for i, v in pairs(v.instances) do
-                        v.Transparency = 0
-                        
-                        if i == 1 then
-                            lerp_table.Transparency = 1
-                        else
-                            v.Lerp({Transparency = 1}, 0.1, false)
+                objs.border2 = utility:Draw('Square', {
+                    Size = newUDim2(1,2,1,2);
+                    Position = newUDim2(0,-1,0,-1);
+                    ThemeColor = 'Border 1';
+                    ZIndex = z-2;
+                    Parent = objs.border1;
+                })
+
+                objs.border3 = utility:Draw('Square', {
+                    Size = newUDim2(1,2,1,2);
+                    Position = newUDim2(0,-1,0,-1);
+                    ThemeColor = 'Border';
+                    ZIndex = z-3;
+                    Parent = objs.border2;
+                })
+
+                objs.statusText = utility:Draw('Text', {
+                    Position = newUDim2(0,5,0,4);
+                    Text = 'colorpicker_status_text';
+                    ThemeColor = 'Option Text 1';
+                    Size = 13;
+                    Font = 2;
+                    Outline = true;
+                    ZIndex = z+1;
+                    Parent = objs.background;
+                })
+
+                objs.mainColor = utility:Draw('Square', {
+                    Size = newUDim2(0, 175, 0, 175);
+                    Position = newUDim2(0, 5, 0, 25);
+                    Color = c3new(1,0,0);
+                    ZIndex = z+2;
+                    Parent = objs.background;
+                })
+
+                objs.sat1 = utility:Draw('Image', {
+                    Size = newUDim2(1,0,1,0);
+                    Data = syn.crypt.base64.decode"iVBORw0KGgoAAAANSUhEUgAAAaQAAAGkCAQAAADURZm+AAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JQAAgIMAAPn/AACA6QAAdTAAAOpgAAA6mAAAF2+SX8VGAAAAAmJLR0QA/4ePzL8AAAAJcEhZcwAACxMAAAsTAQCanBgAAAAHdElNRQflBwwSLzK3wl3KAAADrElEQVR42u3TORLCMBBFwT+6/50hMqXSZgonBN0BWCDGYPwqeSWVZPWYVHd0Pc5H86v9areu4Sz9u7XZXT/vvtZtu6dtJtYw525iGya05afnWW17ltPE8fzfTZy/yf3vmCes59xf0Sf/42l3lnvGOyyH+y/bo/X689wCPCYkEBIICYQECAmEBEICIQFCAiGBkEBIgJBASCAkEBIgJBASCAmEBAgJhARCAiEBQgIhgZAAIYGQQEggJEBIICQQEggJEBIICYQEQgKEBEICIYGQACGBkEBIICRASCAkEBIICRASCAmEBAgJhARCAiEBQgIhgZBASICQQEggJBASICQQEggJhAQICYQEQgIhAUICIYGQQEguAQgJhARCAoQEQgIhgZAAIYGQQEggJEBIICQQEggJEBIICYQEQgKEBEICIYGQACGBkEBIgJBASCAkEBIgJBASCAmEBAgJhARCAiEBQgIhgZBASICQQEggJBASICQQEggJhAQICYQEQgKEBEICIYGQACGBkEBIICRASCAkEBIICRASCAmEBEIChARCAiGBkAAhgZBASCAkQEggJBASICQQEggJhAQICYQEQgIhAUICIYGQQEiAkEBIICQQEiAkEBIICYQECAmEBEIChARCAiGBkAAhgZBASCAkQEggJBASCAkQEggJhARCAoQEQgIhgZAAIYGQQEggJEBIICQQEiAkEBIICYQECAmEBEICIQFCAiGBkEBIgJBASCAkEBIgJBASCAmEBAgJhARCAiEBQgIhgZAAIYGQQEggJEBIICQQEggJEBIICYQEQgKEBEICIYGQACGBkEBIICRASCAkEBIgJBASCAmEBAgJhARCAiEBQgIhgZBASICQQEggJBASICQQEggJhAQICYQEQgIhAUICIYGQACGBkEBIICRASCAkEBIICRASCAmEBEIChARCAiGBkAAhgZBASCAkQEggJBASCAkQEggJhAQICYQEQgIhAUICIYGQQEiAkEBIICQQEiAkEBIICYQECAmEBEICIQFCAiGBkEBILgEICYQEQgKEBEICIYGQACGBkEBIICRASCAkEBIICRASCAmEBEIChARCAiGBkAAhgZBASICQQEggJBASICQQEggJhAQICYQEQgIhAUICIYGQQEiAkEBIICQQEiAkEBIICYQECAmEBEIChARCAiGBkAAhgZBASCAkQEggJBASCAkQEggJhARCAoQEQgIhgZAAIYGQQEggJEBIICQQEiAkEBL8lzft9AVFFzN+ywAAACV0RVh0ZGF0ZTpjcmVhdGUAMjAyMS0wNy0xMlQxODo0Nzo1MCswMDowMIxlM90AAAAldEVYdGRhdGU6bW9kaWZ5ADIwMjEtMDctMTJUMTg6NDc6NTArMDA6MDD9OIthAAAAAElFTkSuQmCC";
+                    ZIndex = z+3;
+                    Parent = objs.mainColor;
+                })
+
+                objs.sat2 = utility:Draw('Image', {
+                    Size = newUDim2(1,0,1,0);
+                    Data = syn.crypt.base64.decode"iVBORw0KGgoAAAANSUhEUgAAAaQAAAGkCAQAAADURZm+AAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JQAAgIMAAPn/AACA6QAAdTAAAOpgAAA6mAAAF2+SX8VGAAAAAmJLR0QA/4ePzL8AAAAJcEhZcwAACxMAAAsTAQCanBgAAAAHdElNRQflBwwSLyBEeyyCAAAD4klEQVR42u3YwQnAQAhFQTek/5pz9eBtEYzMlBD4PDcRADDBieMjwK3HJwBDghFepx0oEhgSOO0ARQJDAqcdKBJgSGBI4I0EhgQ47cCQwJDAGwlQJDAkcNqBIgGKBIoEhgROO0CRQJFAkQBDAqcdGBI47QBFAkUCQwKnHaBIoEigSKBIgCKBIYHTDhQJUCQwJHDagSIBigSGBE47UCRAkcCQwGkHKBIoEigSGBLgtANDAkMCbyTAkMBpB4oEigQoEhgSOO1AkQBDAqcdKBIoEqBIYEjgtANFUiRQJFAkMCTAaQeKBIoEigQYEjjtQJFAkQBFAkMCpx0oEmBI4LQDRQJFAhQJDAmcdqBIgCKBIoEhAU47UCRQJFAkwJDAaQeKBIYEOO1AkUCRYHuRTAmcduC0A0UCFAkUCQwJnHaAIoEigSKBIQFOO2gvkimBIoE3EhgS4LQDRQJDAqcdoEigSKBIYEiAIYEhwXx+NoAigSGB0w5QJDAkMCQwJKDiZwMoEhgSOO0ARQJFgnlFMiVw2oHTDhQJUCRQJDAkcNoBVZFMCRQJvJHAkACnHSgSKBIoElANSZPAaQdOOzAkwGkHigSGBIYEGBK08LMBFAkUCRQJMCQwJDAkWMjPBlAkMCRw2gG5SKYEigTeSGBIgNMOFAkMCQwJMCRo4WcDKBIYEjjtgFwkUwJFAm8kMCTAaQeKBIoEigRUQ9IkcNqB0w4MCXDagSKBIsHCIpkSOO3AaQeKBCgSKBIYEhgSYEjQws8GUCQwJHDaAblIpgSKBN5IYEiA0w4UCQwJDAkwJGjhZwMoEhgSOO0ARQJDAkMCQwIqfjaAIoEigSIBhgROO5hXJFMCpx047UCRAEUCRQJDAqcdUBXJlECRwBsJDAlw2oEigSKBIgGGBIYEhgSL+dkAigSGBE47QJHAkMBpB4oEGBIYEhgSrOZnAygSKBIoEmBI4LQDRQJFAhQJDAmcdrC8SKYEigTeSGBIgNMOFAkMCZx2gCKBIoEigSEBTjtQJFAkUCTAkMBpB4oEigQoEhgSOO1AkQBDAqcdKBKgSKBIYEjgtAMUCRQJFAkMCXDagSKBIoEiAYYETjtQJFAkQJHAkMBpB4oEGBI47UCRQJEARQJDAqcdoEigSGBI4LQDFAkUCRQJFAkwJHDagSKBIQFOOzAkMCTwRgIMCZx2oEigSIAigSKBIYHTzkcARQJFAkMCnHZgSGBI4I0EGBI47UCRQJEAQwKnHSgSKBKgSGBI4LQDRQIUCRQJDAmcdoAigSGB0w5QJFAkUCQwJMBpB4oEhgROO0CRwJDAkMAbCVAkMCT4gw/reQYigE05fAAAACV0RVh0ZGF0ZTpjcmVhdGUAMjAyMS0wNy0xMlQxODo0NzozMiswMDowMN2VK3MAAAAldEVYdGRhdGU6bW9kaWZ5ADIwMjEtMDctMTJUMTg6NDc6MzIrMDA6MDCsyJPPAAAAAElFTkSuQmCC";
+                    ZIndex = z+4;
+                    Parent = objs.mainColor;
+                })
+
+                objs.colorBorder = utility:Draw('Square', {
+                    Size = newUDim2(1,2,1,2);
+                    Position = newUDim2(0,-1,0,-1);
+                    ThemeColor = 'Border';
+                    ZIndex = z+1;
+                    Parent = objs.mainColor;
+                })
+
+                objs.mainDetector = utility:Draw('Square',{
+                    Size = newUDim2(1,0,1,0);
+                    Transparency = 0;
+                    ZIndex = z+10;
+                    Parent = objs.mainColor;
+                })
+
+                objs.hue = utility:Draw('Image', {
+                    Size = newUDim2(0,175,0,10);
+                    Position = newUDim2(0,5,0,205);
+                    Data = library.images.colorhue;
+                    ZIndex = z+2;
+                    Parent = objs.background;
+                })
+
+                objs.hueBorder = utility:Draw('Square', {
+                    Size = newUDim2(1,2,1,2);
+                    Position = newUDim2(0,-1,0,-1);
+                    ThemeColor = 'Border';
+                    ZIndex = z+1;
+                    Parent = objs.hue;
+                })
+
+                objs.hueDetector = utility:Draw('Square',{
+                    Size = newUDim2(1,0,1,0);
+                    Transparency = 0;
+                    ZIndex = z+10;
+                    Parent = objs.hue;
+                })
+
+                objs.transColor = utility:Draw('Square', {
+                    Size = newUDim2(0,10,0,175);
+                    Position = newUDim2(0,185,0,25);
+                    Color = c3new(1,0,0);
+                    ZIndex = z+2;
+                    Parent = objs.background;
+                })
+
+                objs.trans = utility:Draw('Image', {
+                    Size = newUDim2(1,0,1,0);
+                    Data = library.images.colortrans;
+                    ZIndex = z+3;
+                    Parent = objs.transColor;
+                })
+
+                objs.transBorder = utility:Draw('Square', {
+                    Size = newUDim2(1,2,1,2);
+                    Position = newUDim2(0,-1,0,-1);
+                    ThemeColor = 'Border';
+                    ZIndex = z+1;
+                    Parent = objs.transColor;
+                })
+
+                objs.transDetector = utility:Draw('Square',{
+                    Size = newUDim2(1,0,1,0);
+                    Transparency = 0;
+                    ZIndex = z+10;
+                    Parent = objs.transColor;
+                })
+
+                objs.pointer = utility:Draw('Square', {
+                    Size = newUDim2(0,2,0,2);
+                    Position = newUDim2(0,0,0,0);
+                    Color = c3new(1,1,1);
+                    ZIndex = z+6;
+                    Parent = objs.mainColor;
+                })
+
+                objs.pointerBorder = utility:Draw('Square', {
+                    Size = newUDim2(1,2,1,2);
+                    Position = newUDim2(0,-1,0,-1);
+                    Color = c3new(0,0,0);
+                    ZIndex = z+5;
+                    Parent = objs.pointer;
+                })
+
+                objs.hueSlider = utility:Draw('Square', {
+                    Size = newUDim2(0,1,1,0);
+                    Color = c3new(1,1,1);
+                    ZIndex = z+4;
+                    Parent = objs.hue;
+                })
+
+                objs.hueSliderBorder = utility:Draw('Square', {
+                    Size = newUDim2(1,2,1,2);
+                    Position = newUDim2(0,-1,0,-1);
+                    Color = c3new(0,0,0);
+                    ZIndex = z+3;
+                    Parent = objs.hueSlider;
+                })
+
+                objs.transSlider = utility:Draw('Square', {
+                    Size = newUDim2(1,0,0,1);
+                    Color = c3new(1,1,1);
+                    ZIndex = z+5;
+                    Parent = objs.trans;
+                })
+
+                objs.transSliderBorder = utility:Draw('Square', {
+                    Size = newUDim2(1,2,1,2);
+                    Position = newUDim2(0,-1,0,-1);
+                    Color = c3new(0,0,0);
+                    ZIndex = z+4;
+                    Parent = objs.transSlider;
+                })
+
+                objs.rBackground = utility:Draw('Square', {
+                    Size = newUDim2(0, 60, 0, 15);
+                    Position = newUDim2(0, 5, 1, - 20);
+                    ThemeColor = 'Option Background';
+                    Parent = objs.background;
+                    ZIndex = z+5;
+                })
+
+                objs.rBorder = utility:Draw('Square', {
+                    Size = newUDim2(1,2,1,2);
+                    Position = newUDim2(0,-1,0,-1);
+                    Color = c3new(0,0,0);
+                    ZIndex = z+4;
+                    Parent = objs.rBackground;
+                })
+
+                objs.rText = utility:Draw('Text', {
+                    Position = newUDim2(.5,0,0,0);
+                    Color = c3new(1,.1,.1);
+                    Text = 'R';
+                    Size = 13;
+                    Font = 2;
+                    Outline = true;
+                    Center = true;
+                    ZIndex = z+6;
+                    Parent = objs.rBackground;
+                })
+
+                objs.gBackground = utility:Draw('Square', {
+                    Size = newUDim2(0, 60, 0, 15);
+                    Position = newUDim2(0, 70, 1, - 20);
+                    ThemeColor = 'Option Background';
+                    Parent = objs.background;
+                    ZIndex = z+5;
+                })
+
+                objs.gBorder = utility:Draw('Square', {
+                    Size = newUDim2(1,2,1,2);
+                    Position = newUDim2(0,-1,0,-1);
+                    Color = c3new(0,0,0);
+                    ZIndex = z+4;
+                    Parent = objs.gBackground;
+                })
+
+                objs.gText = utility:Draw('Text', {
+                    Position = newUDim2(.5,0,0,0);
+                    Color = c3new(.1,1,.1);
+                    Text = 'G';
+                    Size = 13;
+                    Font = 2;
+                    Outline = true;
+                    Center = true;
+                    ZIndex = z+6;
+                    Parent = objs.gBackground;
+                })
+
+                objs.bBackground = utility:Draw('Square', {
+                    Size = newUDim2(0, 60, 0, 15);
+                    Position = newUDim2(0, 135, 1, - 20);
+                    ThemeColor = 'Option Background';
+                    Parent = objs.background;
+                    ZIndex = z+5;
+                })
+
+                objs.bBorder = utility:Draw('Square', {
+                    Size = newUDim2(1,2,1,2);
+                    Position = newUDim2(0,-1,0,-1);
+                    Color = c3new(0,0,0);
+                    ZIndex = z+4;
+                    Parent = objs.bBackground;
+                })
+
+                objs.bText = utility:Draw('Text', {
+                    Position = newUDim2(.5,0,0,0);
+                    Color = c3new(.1,.1,1);
+                    Text = 'B';
+                    Size = 13;
+                    Font = 2;
+                    Outline = true;
+                    Center = true;
+                    ZIndex = z+6;
+                    Parent = objs.bBackground;
+                })
+
+                local draggingHue, draggingSat, draggingTrans = false, false, false;
+
+                local function updateSatVal(pos)
+                    if window.colorpicker.selected ~= nil then
+                        local hue, sat, val = window.colorpicker.selected.color:ToHSV()
+                        X = (objs.mainColor.Object.Position.X + objs.mainColor.Object.Size.X) - objs.mainColor.Object.Position.X
+                        Y = (objs.mainColor.Object.Position.Y + objs.mainColor.Object.Size.Y) - objs.mainColor.Object.Position.Y
+                        X = math.clamp((pos.X - objs.mainColor.Object.Position.X) / X, 0, 0.995)
+                        Y = math.clamp((pos.Y - objs.mainColor.Object.Position.Y) / Y, 0, 0.995)
+                        sat, val = 1 - X, 1 - Y;
+                        window.colorpicker.selected:SetColor(fromhsv(hue,sat,val));
+                        window.colorpicker:Visualize(fromhsv(hue, sat, val), window.colorpicker.selected.trans);
+                    end
+                end
+
+                local function updateHue(pos)
+                    if window.colorpicker.selected ~= nil then
+                        local hue, sat, val = window.colorpicker.selected.color:ToHSV()
+                        X = (objs.hue.Object.Position.X + objs.hue.Object.Size.X) - objs.hue.Object.Position.X
+                        X = math.clamp((pos.X - objs.hue.Object.Position.X) / X, 0, 0.995)
+                        hue = 1 - X
+                        window.colorpicker.selected:SetColor(fromhsv(hue,sat,val));
+                        window.colorpicker:Visualize(fromhsv(hue, sat, val), window.colorpicker.selected.trans);
+                    end
+                end
+
+                local function updateTrans(pos)
+                    if window.colorpicker.selected ~= nil then
+                        Y = (objs.trans.Object.Position.Y + objs.trans.Object.Size.Y) - objs.trans.Object.Position.Y
+                        Y = math.clamp((pos.Y - objs.transColor.Object.Position.Y) / Y, 0, 0.995)
+                        window.colorpicker.selected:SetTrans(Y);
+                        window.colorpicker:Visualize(window.colorpicker.selected.color, Y);
+                    end
+                end
+
+                utility:Connection(objs.mainDetector.MouseButton1Down, function(pos)
+                    draggingSat = true;
+                    updateSatVal(pos)
+                end)
+
+                utility:Connection(objs.hueDetector.MouseButton1Down, function(pos)
+                    draggingHue = true;
+                    updateHue(pos)
+                end)
+
+                utility:Connection(objs.transDetector.MouseButton1Down, function(pos)
+                    draggingTrans = true;
+                    updateTrans(pos)
+                end)
+
+                utility:Connection(mousemove, function(pos)
+                    if library.open then
+                        if draggingSat then
+                            updateSatVal(pos)
+                        elseif draggingHue then
+                            updateHue(pos)
+                        elseif draggingTrans then
+                            updateTrans(pos)
                         end
                     end
+                end)
+
+                utility:Connection(button1up, function()
+                    draggingSat = false;
+                    draggingHue = false;
+                    draggingTrans = false;
+                end)
+
+            end
+
+            function window.colorpicker:Visualize(c3, a)
+                if typeof(c3) ~= 'Color3' then return end
+                if typeof(a) ~= 'number' then return end
+                local h,s,v = c3:ToHSV();
+                h = h == 0 and 1 or h;
+                self.color = c3;
+                self.trans = a;
+                self.objects.mainColor.Color = fromhsv(h,1,1);
+                self.objects.transColor.Color = fromhsv(h,s,v);
+                self.objects.hueSlider.Position = newUDim2(1 - h, 0,0,0);
+                self.objects.transSlider.Position = newUDim2(0,0,a,0);
+                self.objects.pointer.Position = newUDim2(1 - s, 0, 1 - v, 0);
+                self.objects.statusText.Text = 'Editing : Unknown';
+                if self.selected ~= nil then
+                    local txt = 'Editing : Unknown';
+                    if self.selected.text ~= nil and self.selected.text ~= '' then
+                        txt = tostring(self.selected.text)
+                    elseif self.selected.flag ~= nil and self.selected.flag ~= '' then
+                        txt = tostring(self.selected.flag)
+                    end
+                    self.objects.statusText.Text = tostring(txt);
                 end
-
-                v.instances[1].Lerp(lerp_table, 0.1, false)
-
-                position_to_go = position_to_go + v.instances[1].Size.Y + self.interval
             end
+            
+            window.colorpicker:Visualize(window.colorpicker.color, window.colorpicker.trans)
 
         end
+        -------------------------
 
-        self.ntiflist = notiflist
-    end
+        ---- Create Dropdown ----
+        do
+            -- Default Objects
+            do
+                local objs = window.dropdown.objects;
+                local z = library.zindexOrder.dropdown;
 
-    function window.Keybinds(self)
+                objs.background = utility:Draw('Square', {
+                    Visible = false;
+                    Size = newUDim2(1,-3,0,50);
+                    Position = newUDim2(0,3,1,0);
+                    ThemeColor = 'Background';
+                    ZIndex = z;
+                    Parent = window.objects.background;
+                })
 
-        local kblist = {visible = false, instances = {}}
+                objs.border1 = utility:Draw('Square', {
+                    Size = newUDim2(1,2,1,2);
+                    Position = newUDim2(0,-1,0,-1);
+                    ThemeColor = 'Border';
+                    ZIndex = z-1;
+                    Parent = objs.background;
+                })
 
-        local kblist_frame = utility:Draw("Square", v2zero, {
-            Color = window.theme.lcont,
-            Group = "lcont",
-            Size = v2new()
-        }, true)
+                objs.border2 = utility:Draw('Square', {
+                    Size = newUDim2(1,2,1,2);
+                    Position = newUDim2(0,-1,0,-1);
+                    ThemeColor = 'Border 1';
+                    ZIndex = z-2;
+                    Parent = objs.border1;
+                })
 
-        local kblist_outline = utility:Draw("Square", v2new(-1, -1), {
-            Color = window.theme.outline,
-            Group = "outline",
-            Size = kblist_frame.Size + v2new(2, 2),
-            Filled = false,
-            Parent = kblist_frame
-        }, true)
+                objs.border3 = utility:Draw('Square', {
+                    Size = newUDim2(1,2,1,2);
+                    Position = newUDim2(0,-1,0,-1);
+                    ThemeColor = 'Border';
+                    ZIndex = z-3;
+                    Parent = objs.border2;
+                })
 
-        local kblist_accent = utility:Draw("Square", v2zero, {
-            Color = window.theme.accent,
-            Size = v2new(kblist_frame.Size.X, 1),
-            Group = "accent",
-            Parent = kblist_frame
-        }, true)
+            end
 
-        local kblist_title = utility:Draw("Text", v2new(3, 3), {
-            Color = c3rgb(255, 255, 255),
-            Outline = true,
-            Size = 13,
-            Font = 2,
-            Text = "keybinds",
-            Parent = kblist_frame
-        }, true)
+            function window.dropdown:Refresh()
+                if self.selected ~= nil then
+                    local list = self.selected
+                    for idx, value in next, list.values do
+                        local valueObject = self.objects.values[idx]
+                        if valueObject == nil then
+                            valueObject = {};
+                            valueObject.background = utility:Draw('Square', {
+                                Size = newUDim2(1,-4,0,18);
+                                Color = Color3.new(.25,.25,.25);
+                                Transparency = 0;
+                                ZIndex = library.zindexOrder.dropdown+1;
+                                Parent = self.objects.background;
+                            })
+                            valueObject.text = utility:Draw('Text', {
+                                Position = newUDim2(0,3,0,1);
+                                ThemeColor = 'Option Text 2';
+                                Text = tostring(value);
+                                Size = 13;
+                                Font = 2;
+                                ZIndex = library.zindexOrder.dropdown+2;
+                                Parent = valueObject.background;
+                            })
+                            valueObject.connection = utility:Connection(valueObject.background.MouseButton1Down, function()
+                                local currentList = self.selected
+                                if currentList then
+                                    local val = currentList.values[idx]
+                                    local currentSelected = currentList.selected;
+                                    local newSelected = currentList.multi and {} or val;
+                                    
+                                    if currentList.multi then
+                                        for i,v in next, currentSelected do
+                                            if v == "none" then continue end
+                                            newSelected[i] = v;
+                                        end
+                                        if table.find(newSelected, val) then
+                                            table.remove(newSelected, table.find(newSelected, val));
+                                        else
+                                            table.insert(newSelected, val)
+                                        end
+                                    end
 
-        local kblist_value = utility:Draw("Text", v2new(3, 17), {
-            Color = c3rgb(255, 255, 255),
-            Outline = true,
-            Size = 13,
-            Font = 2,
-            Text = "",
-            Parent = kblist_frame
-        }, true)
+                                    currentList:Select(newSelected);
+                                    if not currentList.multi then
+                                        currentList.open = false;
+                                        currentList.objects.openText.Text = '+';
+                                        window.dropdown.selected = nil;
+                                        window.dropdown.objects.background.Visible = false;
+                                    end
 
-        function kblist.Update(self)
-            local kbds_string = ""
-            local max_len = 56
+                                    for idx, val in next, currentList.values do
+                                        local valueObj = self.objects.values[idx]
+                                        if valueObj then
+                                            valueObj.background.Transparency = (typeof(newSelected) == 'table' and table.find(newSelected, val) or newSelected == val) and 1 or 0
+                                        end
+                                    end
 
-            for i, v in pairs(window.kbds) do
-                local keybind = library.pointers[v]
+                                end
+                            end)
+                            self.objects.values[idx] = valueObject
+                        end
+                    end
 
-                local string_add = ("[%s] %s: %s\n"):format(keybind.instances[5].Text, keybind.sname, keybind.name)
+                    for idx, val in next, list.values do
+                        local valueObj = self.objects.values[idx]
+                        if valueObj then
+                            valueObj.background.Transparency = (typeof(list.selected) == 'table' and table.find(list.selected, val) or list.selected == val) and 1 or 0
+                        end
+                    end
 
-                if utility:GetPlexSize(string_add) > max_len then
-                    max_len = utility:GetPlexSize(string_add)
+                    local y,padding = 2,2
+                    for idx, obj in next, self.objects.values do
+                        local valueStr = list.values[idx]
+                        obj.background.Visible = valueStr ~= nil
+                        if valueStr ~= nil then
+                            obj.background.Position = newUDim2(0,2,0,y);
+                            obj.text.Text = valueStr;
+                            y = y + obj.background.Object.Size.Y + padding;
+                        end
+                    end
+
+                    self.objects.background.Size = newUDim2(1,-6,0,y);    
+
                 end
-
-                kbds_string = kbds_string .. string_add
             end
-
-            kblist_frame.Size = v2new(6 + max_len, 20 + ((#kbds_string:split("\n")-1)*13))
-            kblist_outline.Size = kblist_frame.Size + v2new(2, 2)
-            kblist_accent.Size = v2new(kblist_frame.Size.X, 1)
-            kblist_value.Text = kbds_string
-        end
-
-        function kblist.AdjustFuckingUselessShitNamedPositionIWantToDie(self, pos)
-            kblist_frame.Position = pos
-        end
-
-        function kblist.ShowHideFromMyLifePleaseSomebodyKillMeIDontWantToBeAliveRightNowImUselessInMyLife(self, visible)
-            for i, v in pairs(self.instances) do
-                v.Visible = visible
-            end
-        end
-
-        kblist.instances = {kblist_frame, kblist_outline, kblist_accent, kblist_title, kblist_value}
-
-        kblist:Update()
-        kblist:AdjustFuckingUselessShitNamedPositionIWantToDie(v2new(20, math.floor(utility:ScreenSize().Y/2)))
-        kblist:ShowHideFromMyLifePleaseSomebodyKillMeIDontWantToBeAliveRightNowImUselessInMyLife(false)
-
-        self.kblist = kblist
-
-    end
-
-    function window.Watermark(self)
-
-        local watermark = {text = "cripbot-paste", visible = false, instances = {}}
-
-        local watermark_frame = utility:Draw("Square", v2zero, {
-            Color = window.theme.lcont,
-            Group = "lcont",
-            Size = v2new(0, 20),
-        }, true)
-
-        local watermark_inline = utility:Draw("Square", v2new(-1, -1), {
-            Color = window.theme.dcont,
-            Group = "dcont",
-            Size = watermark_frame.Size + v2new(2, 2),
-            Filled = false,
-            Parent = watermark_frame
-        }, true)
-
-        local watermark_outline = utility:Draw("Square", v2new(-2, -2), {
-            Color = window.theme.outline,
-            Group = "outline",
-            Size = watermark_frame.Size + v2new(4, 4),
-            Filled = false,
-            Parent = watermark_frame
-        }, true)
-
-        local watermark_accent = utility:Draw("Square", v2new(), {
-            Color = window.theme.accent,
-            Size = v2new(watermark_frame.Size.X, 1),
-            Group = "accent",
-            Parent = watermark_frame
-        }, true)
-
-        local watermark_gradient = utility:Draw("Image", v2new(0, 1), {
-            Size = watermark_frame.Size - v2new(0, 1),
-            Transparency = 0.35,
-            Parent = watermark_frame
-        }, true)
-
-        local watermark_title = utility:Draw("Text", v2new(3, 4), {
-            Color = c3rgb(255, 255, 255),
-            Outline = true,
-            Size = 13,
-            Font = 2,
-            Text = watermark.text,
-            Parent = watermark_frame
-        }, true)
-
-        utility:Image(watermark_gradient, "https://i.imgur.com/j9y4dux.png")
-
-        watermark.instances = {watermark_frame, watermark_inline, watermark_outline, watermark_accent, watermark_gradient, watermark_title}
-
-        function watermark.Update(self)
-            local bounds = utility:GetPlexSize(self.text)
-
-            watermark_frame.Size = v2new(6 + bounds, 20)
-            watermark_inline.Size = watermark_frame.Size + v2new(2, 2)
-            watermark_outline.Size = watermark_inline.Size + v2new(2, 2)
-            watermark_accent.Size = v2new(watermark_frame.Size.X, 1)
-            watermark_gradient.Size = watermark_frame.Size - v2new(0, 1)
-
-            watermark_frame.Position = v2new(20, 40)
-        end
-
-        function watermark.SetVisible(self, value)
-            self.visible = value
-
-            for i, v in pairs(self.instances) do
-                v.Visible = self.visible
-            end
-        end
-
-        function watermark.SetText(self, value)
-            self.text = value
-        end
-
-        utility:Connect(rs.RenderStepped, function()
-            watermark:Update()
-
-            watermark_title.Text = watermark.text
-        end)
-
-        watermark:SetVisible(false)
-
-        self.watermark = watermark
-
-    end
-
-    function window.Tooltip(self)
         
-        local tooltip = {instances = {}}
+            window.dropdown:Refresh();
+        end
+        -------------------------
 
-        local tt_frame = utility:Draw("Square", nil, {
-            Color = self.theme.dcont,
-            Group = "dcont",
-            Size = v2new(0, 17)
-        })
+        local function tooltip(option)
+            utility:Connection(option.objects.holder.MouseEnter, function()
+                tooltipObjects.background.Visible = (not (option.tooltip == '' or option.tooltip == nil)) and true or false;
+                tooltipObjects.riskytext.Visible = option.risky;
+                tooltipObjects.text.Position = option.risky and newUDim2(0,60,0,0) or newUDim2(0,3,0,0)
+                tooltipObjects.text.Text = tostring(option.tooltip);
+                library.CurrentTooltip = option;
+            end)
+            utility:Connection(option.objects.holder.MouseLeave, function()
+                if library.CurrentTooltip == option then
+                    library.CurrentTooltip = nil;
+                    tooltipObjects.background.Visible = false
+                end
+            end)
+        end
 
-        local tt_frame_outline = utility:Draw("Square", v2new(-1, -1), {
-            Color = self.theme.outline,
-            Group = "outline",
-            Size = tt_frame.Size + v2new(2, 2),
-            Filled = false,
-            Parent = tt_frame
-        })
 
-        local tt_accent = utility:Draw("Square", v2zero, {
-            Color = self.theme.accent,
-            Size = v2new(2, tt_frame.Size.Y),
-            Group = "accent",
-            Parent = tt_frame
-        })
+        local visValues = {};
 
-        local tt_text = utility:Draw("Text", v2new(5, 2), {
-            Color = c3rgb(255, 255, 255),
-            Outline = true,
-            Size = 13,
-            Font = 2,
-            Text = "",
-            Parent = tt_frame
-        })
+        function window:SetOpen(bool)
+            if typeof(bool) == 'boolean' then
+                self.open = bool;
 
-        tooltip.instances = {tt_frame, tt_frame_outline, tt_accent, tt_text}
+                local objs = self.objects.background:GetDescendants()
+                table.insert(objs, self.objects.background)
 
-        function tooltip.SetText(self, text)
-            for i, v in pairs(self.instances) do
-                v.Visible = true
+                task.spawn(function()
+                    if not bool then
+                        task.wait(.1);
+                    end
+                    self.objects.background.Visible = bool;
+                end)
+
+                for _,v in next, objs do
+                    if v.Object.Transparency ~= 0 then
+                        task.spawn(function()
+                            if bool then
+                                utility:Tween(v.Object, 'Transparency', visValues[v] or 1, .1);
+                            else
+                                visValues[v] = v.Object.Transparency;
+                                utility:Tween(v.Object, 'Transparency', .05, .1);
+                            end
+                        end)
+                    end
+                end
             end
+        end
 
-            tt_text.Text = text
+        function window:AddTab(text, order)
+            local tab = {
+                text = text;
+                order = order or #self.tabs+1;
+                callback = function() end;
+                objects = {};
+                sections = {};
+            }
 
-            tt_frame.Size = v2new(7 + utility:GetPlexSize(text), 4 + (#text:split("\n")*13))
+            table.insert(self.tabs, tab);
 
-            if #text:split("\n") > 1 then
-                local max = 0
-                for i, v in pairs(text:split("\n")) do
-                    if utility:GetPlexSize(v) > max then
-                        max = utility:GetPlexSize(v)
+            --- Create Objects ---
+            do
+                local objs = tab.objects;
+                local z = library.zindexOrder.window + 5;
+
+                objs.background = utility:Draw('Square', {
+                    Size = newUDim2(0,50,1,0);
+                    Parent = self.objects.tabHolder;
+                    ThemeColor = 'Unselected Tab Background';
+                    ZIndex = z;
+                })
+
+                objs.innerBorder = utility:Draw('Square', {
+                    Size = newUDim2(1,2,1,2);
+                    Position = newUDim2(0,-1,0,-1);
+                    ThemeColor = 'Border 1';
+                    ZIndex = z-1;
+                    Parent = objs.background;
+                })
+    
+                objs.outerBorder = utility:Draw('Square', {
+                    Size = newUDim2(1,2,1,2);
+                    Position = newUDim2(0,-1,0,-1);
+                    ThemeColor = 'Border 3';
+                    ZIndex = z-2;
+                    Parent = objs.innerBorder;
+                })
+
+                objs.topBorder = utility:Draw('Square', {
+                    Size = newUDim2(1,0,0,1);
+                    ThemeColor = 'Unselected Tab Background';
+                    ZIndex = z+1;
+                    Parent = objs.background;
+                })
+
+                objs.text = utility:Draw('Text', {
+                    ThemeColor = 'Unselected Tab Text';
+                    Text = text;
+                    Size = 13;
+                    Font = 2;
+                    ZIndex = z+1;
+                    Outline = true;
+                    Center = true;
+                    Parent = objs.background;
+                })
+
+                utility:Connection(objs.background.MouseButton1Down, function()
+                    tab:Select();
+                end)
+
+            end
+            ----------------------
+
+            function tab:AddSection(text, side, order)
+                local section = {
+                    text = tostring(text);
+                    side = side == nil and 1 or clamp(side,1,2);
+                    order = order or #self.sections+1;
+                    enabled = true;
+                    objects = {};
+                    options = {};
+                };
+
+                table.insert(self.sections, section);
+
+                --- Create Objects ---
+                do
+                    local objs = section.objects;
+                    local z = library.zindexOrder.window+15;
+
+                    objs.background = utility:Draw('Square', {
+                        ThemeColor = 'Section Background';
+                        ZIndex = z;
+                        Parent = window.objects['columnholder'..(section.side)];
+                    })
+
+                    objs.innerBorder = utility:Draw('Square', {
+                        Size = newUDim2(1,2,1,1);
+                        Position = newUDim2(0,-1,0,0);
+                        ThemeColor = 'Border 3';
+                        ZIndex = z-1;
+                        Parent = objs.background;
+                    })
+
+                    objs.outerBorder = utility:Draw('Square', {
+                        Size = newUDim2(1,2,1,1);
+                        Position = newUDim2(0,-1,0,0);
+                        ThemeColor = 'Border 1';
+                        ZIndex = z-2;
+                        Parent = objs.innerBorder;
+                    })
+
+                    objs.topBorder1 = utility:Draw('Square', {
+                        Size = newUDim2(.025,1,0,1);
+                        Position = newUDim2(0,-1,0,0);
+                        ThemeColor = 'Accent';
+                        ZIndex = z+1;
+                        Parent = objs.background;
+                    })
+
+                    objs.topBorder2 = utility:Draw('Square', {
+                        ThemeColor = 'Accent';
+                        ZIndex = z+1;
+                        Parent = objs.background;
+                    })
+
+                    objs.textlabel = utility:Draw('Text', {
+                        Position = newUDim2(.0425,0,0,-7);
+                        ThemeColor = 'Primary Text';
+                        Size = 13;
+                        Font = 2;
+                        ZIndex = z+1;
+                        Parent = objs.background;
+                    })
+
+                    objs.optionholder = utility:Draw('Square',{
+                        Size = newUDim2(1-.03,0,1,-15);
+                        Position = newUDim2(.015,0,0,13);
+                        Transparency = 0;
+                        ZIndex = z+1;
+                        Parent = objs.background;
+                    })
+                    
+                end
+                ----------------------
+
+                function section:SetText(text)
+                    self.text = tostring(text);
+                    self.objects.textlabel.Text = self.text;
+                    local x = self.objects.background.Object.Size.X - self.objects.textlabel.TextBounds.X - 13
+                    self.objects.topBorder2.Size = newUDim2(0, x, 0, 1)
+                    self.objects.topBorder2.Position = newUDim2(1, 1 + -x, 0, 0)
+                end
+
+                function section:UpdateOptions()
+                    table.sort(self.options, function(a,b)
+                        return a.order < b.order
+                    end)
+
+                    local ySize, padding = 15, 0;
+                    for i,option in next, self.options do
+                        option.objects.holder.Visible = option.enabled
+                        if option.enabled then
+                            option.objects.holder.Position = newUDim2(0,0,0,ySize-15);
+                            ySize += option.objects.holder.Object.Size.Y + padding;
+                        end
+                    end
+
+                    self.objects.background.Size = newUDim2(1,0,0,ySize);
+
+                end
+
+                function section:SetEnabled(bool)
+                    if typeof(bool) == 'boolean' then
+                        section.enabled = bool;
+                        tab:UpdateSections();
                     end
                 end
 
-                tt_frame.Size = v2new(5 + max, tt_frame.Size.Y)
-            end
+                ------- Options -------
 
-            tt_frame_outline.Size = tt_frame.Size + v2new(2, 2)
-            tt_accent.Size = v2new(2, tt_frame.Size.Y)
-        end
+                -- // Toggle
+                function section:AddToggle(data)
+                    local toggle = {
+                        class = 'toggle';
+                        flag = data.flag;
+                        text = '';
+                        tooltip = '';
+                        order = #self.options+1;
+                        state = false;
+                        risky = false;
+                        callback = function() end;
+                        enabled = true;
+                        options = {};
+                        objects = {};
+                    };
 
-        function tooltip.SetPosition(self, pos)
-            tt_frame.Position = pos
-        end
+                    local blacklist = {'objects'};
+                    for i,v in next, data do
+                        if not table.find(blacklist, i) ~= toggle[i] ~= nil then
+                            toggle[i] = v
+                        end
+                    end
 
-        tooltip:SetPosition(v2new(-1000, -1000))
-        
-        self.tooltip = tooltip
+                    table.insert(self.options, toggle)
 
-    end
+                    if toggle.flag then
+                        library.flags[toggle.flag] = toggle.state;
+                        library.options[toggle.flag] = toggle;
+                    end
 
-    function window.Cursor(self)
-        local cursor = {position = v2zero, instances = {}}
+                    --- Create Objects ---
+                    do
+                        local objs = toggle.objects;
+                        local z = library.zindexOrder.window+25;
 
-        local triangle = utility:Draw("Triangle", v2zero, {
-            Color = window.theme.accent,
-            Group = "accent",
-            Filled = true,
-            Thickness = 0,
-            ZIndex = 65
-        })
+                        objs.holder = utility:Draw('Square', {
+                            Size = newUDim2(1,0,0,17);
+                            Transparency = 0;
+                            ZIndex = z+5;
+                            Parent = section.objects.optionholder;
+                        })
 
-        local triangle_outline = utility:Draw("Triangle", v2zero, {
-            Color = window.theme.outline,
-            Group = "outline",
-            Filled = false,
-            Thickness = 1,
-            ZIndex = 66
-        })
+                        objs.background = utility:Draw('Square', {
+                            Size = newUDim2(0,8,0,8);
+                            Position = newUDim2(0,2,0,4);
+                            ThemeColor = 'Option Background';
+                            ZIndex = z+3;
+                            Parent = objs.holder;
+                        })
 
-        function cursor.Update(self)
-            triangle.PointA = self.position 
-            triangle.PointB = self.position + v2new(10, 4)
-            triangle.PointC = self.position + v2new(4, 10)
+                        objs.gradient = utility:Draw('Image', {
+                            Size = newUDim2(1,0,1,0);
+                            Data = library.images.gradientp45;
+                            Transparency = .25;
+                            ZIndex = z+4;
+                            Parent = objs.background;
+                        })
 
-            triangle_outline.PointA = triangle.PointA
-            triangle_outline.PointB = triangle.PointB
-            triangle_outline.PointC = triangle.PointC
-        end
+                        objs.border1 = utility:Draw('Square', {
+                            Size = newUDim2(1,2,1,2);
+                            Position = newUDim2(0,-1,0,-1);
+                            ThemeColor = 'Option Border 1';
+                            ZIndex = z+2;
+                            Parent = objs.background;
+                        })
 
-        function cursor.Set(self, value)
-            self.position = value
+                        objs.border2 = utility:Draw('Square', {
+                            Size = newUDim2(1,2,1,2);
+                            Position = newUDim2(0,-1,0,-1);
+                            ThemeColor = 'Option Border 2';
+                            ZIndex = z+1;
+                            Parent = objs.border1;
+                        })
 
-            self:Update()
-        end
+                        objs.text = utility:Draw('Text', {
+                            Position = newUDim2(0,19,0,1);
+                            ThemeColor = 'Option Text 3';
+                            Size = 13;
+                            Font = 2;
+                            ZIndex = z+1;
+                            Outline = true;
+                            Parent = objs.holder;
+                        })
 
-        utility:Connect(rs.RenderStepped, function()
-            if window.frame.Visible then
-                cursor:Set(uis:GetMouseLocation())
-            end
-        end)
+                        utility:Connection(objs.holder.MouseEnter, function()
+                            objs.border1.ThemeColor = 'Accent';
+                        end)
 
-        cursor.instances = {triangle, triangle_outline}
+                        utility:Connection(objs.holder.MouseLeave, function()
+                            objs.border1.ThemeColor = toggle.state and 'Accent' or 'Option Border 1';
+                        end)
 
-        window.cursor = cursor
-    end
+                        utility:Connection(objs.holder.MouseButton1Down, function()
+                            toggle:SetState(not toggle.state);
+                        end)
 
-    function window.Init(self)
+                    end
+                    ----------------------
 
-        for _, tab in pairs(self.tabs) do
-            tab:Update()
-        end
+                    function toggle:SetState(bool, nocallback)
+                        if typeof(bool) == 'boolean' then
+                            self.state = bool;
+                            if self.flag then
+                                library.flags[self.flag] = bool;
+                            end
 
-        if #self.tabs > 0 then
-            self.saved_settings = {}
+                            self.objects.border1.ThemeColor = bool and 'Accent' or (self.objects.holder.Hover and 'Accent' or 'Option Border 1');
+                            self.objects.text.ThemeColor = bool and (self.risky and 'Risky Text Enabled' or 'Option Text 1') or (self.risky and 'Risky Text' or 'Option Text 3');
+                            self.objects.background.ThemeColor = bool and 'Accent' or 'Option Background';
+                            self.objects.background.ThemeColorOffset = bool and -55 or 0
 
-            local slider_section = self.tabs[1]:Section({name = "Animation", rna = true})
-            local anim_enabled = slider_section:Toggle({name = "Enabled", pointer = ""})
-            local anim_speed = slider_section:Slider({name = "Speed", min = 0.1, def = 1, max = 15, dec = 10, pointer = ""})
-            local anim_min = slider_section:Slider({name = "Minimum value", min = 1, max = 2, pointer = ""})
-            local anim_max = slider_section:Slider({name = "Maximum value", min = 1, max = 2, pointer = ""})
+                            if not nocallback then
+                                self.callback(bool);
+                            end
 
-            slider_section:Update()
-            slider_section:SetPositionIHateMyselfAndIWannaDieOk(v2new(-1000, -1000))
+                        end
+                    end
 
-            local slider_flag = nil
+                    function toggle:SetText(str)
+                        if typeof(str) == 'string' then
+                            self.text = str;
+                            self.objects.text.Text = str;
+                        end
+                    end
 
-            utility:Connect(uis.InputBegan, function(input)
-                if self.frame.Visible and not window:FakeRealMouseFuckingImAloneGoingToKillMyselfWithKnife(slider_section) then
-                    if input.UserInputType == Enum.UserInputType.MouseButton2 then
-                        local slider_visible = false
+                    function toggle:UpdateOptions()
+                        table.sort(self.options, function(a,b)
+                            return a.order < b.order
+                        end)
 
-                        for _, section in pairs(window.sshit.sections) do
-                            if slider_visible then break end
-                            for _, slider in pairs(section.things.sliders) do
-                                if slider_visible then break end
-
-                                local section_frame = section.instances[1]
-                                local slider_title = slider.instances[1]
-
-                                if utility:MouseOverPosition({section_frame.Position + v2new(0, slider_title.GetOffset().Y), section_frame.Position + v2new(section_frame.Size.X, slider_title.GetOffset().Y + 29)}) then
-                                    slider_visible = true
-
-                                    slider_section:SetPositionIHateMyselfAndIWannaDieOk(slider_title.Position + v2new(2, 2))
-
-                                    anim_min.min = slider.min
-                                    anim_min.max = slider.max
-                                    anim_min.dec = slider.dec
-
-                                    anim_max.min = slider.min
-                                    anim_max.max = slider.max
-                                    anim_max.dec = slider.dec
-
-                                    slider_flag = slider.pointer
-
-                                    if self.saved_settings[slider.pointer] then
-                                        local settings = self.saved_settings[slider.pointer]
-
-                                        anim_enabled:Set(settings.enabled)
-                                        anim_min:Set(settings.min)
-                                        anim_max:Set(settings.max)
-                                        anim_speed:Set(settings.speed)
-                                    else
-                                        anim_enabled:Set(false)
-                                        anim_min:Set(slider.min)
-                                        anim_max:Set(slider.max)
-                                        anim_speed:Set(1)
-
-                                        self.saved_settings[slider.pointer] = {
-                                            enabled = false,
-                                            min = slider.min,
-                                            max = slider.max,
-                                            speed = 1,
-                                            dec = slider.dec,
-                                            random_angle_offset = math.random(-720, 720)
-                                        }
-                                    end
+                        local x, y = 0, 0
+                        for i,option in next, self.options do
+                            option.objects.holder.Visible = option.enabled
+                            if option.enabled then
+                                if option.class == 'color' or option.class == 'bind' then
+                                    option.objects.holder.Position = newUDim2(1,-option.objects.holder.Object.Size.X-x,0,0);
+                                    x = x + option.objects.holder.Object.Size.X;
+                                elseif option.class == 'slider' or option.class == 'list' then
+                                    option.objects.holder.Position = newUDim2(0,0,1,-option.objects.holder.Object.Size.Y-y);
+                                    y = y + option.objects.holder.Object.Size.Y;
                                 end
                             end
                         end
 
-                        if not slider_visible then
-                            slider_section:SetPositionIHateMyselfAndIWannaDieOk(v2new(-1000, -1000))
+                        self.objects.holder.Size = newUDim2(1,0,0,17 + y);
+                        section:UpdateOptions()
 
-                            slider_flag = nil
-                        end
-                    elseif input.UserInputType == Enum.UserInputType.MouseButton1 then
-                        if not utility:MouseOverDrawing(slider_section.instances[1]) then
-                            slider_section:SetPositionIHateMyselfAndIWannaDieOk(v2new(-1000, -1000))
-
-                            slider_flag = nil
-                        end
                     end
-                else
-                    slider_section:SetPositionIHateMyselfAndIWannaDieOk(v2new(-1000, -1000))
 
-                    slider_flag = nil
-                end
+                    -- // Toggle Addons
+                    function toggle:AddColor(data)
+                        local color = {
+                            class = 'color';
+                            flag = data.flag;
+                            text = '';
+                            tooltip = '';
+                            order = #self.options+1;
+                            callback = function() end;
+                            color = Color3.new(1,1,1);
+                            trans = 0;
+                            open = false;
+                            enabled = true;
+                            objects = {};
+                        };
+    
+                        local blacklist = {'objects'};
+                        for i,v in next, data do
+                            if not table.find(blacklist, i) and color[i] ~= nil then
+                                color[i] = v
+                            end
+                        end
+                        
+                        table.insert(self.options, color)
+    
+                        if color.flag then
+                            library.flags[color.flag] = color.color;
+                            library.options[color.flag] = color;
+                        end
+    
+                        --- Create Objects ---
+                        do
+                            local objs = color.objects;
+                            local z = library.zindexOrder.window+25;
+    
+                            objs.holder = utility:Draw('Square', {
+                                Size = newUDim2(0,21,0,17);
+                                Transparency = 0;
+                                ZIndex = z+6;
+                                Parent = self.objects.holder;
+                            })
+    
+                            objs.background = utility:Draw('Square', {
+                                Size = newUDim2(0,15,0,8);
+                                Position = newUDim2(0,4,0,5);
+                                ZIndex = z+3;
+                                Parent = objs.holder;
+                            })
+    
+                            objs.gradient = utility:Draw('Image', {
+                                Size = newUDim2(1,0,1,0);
+                                Data = library.images.gradientp45;
+                                Transparency = .25;
+                                ZIndex = z+4;
+                                Parent = objs.background;
+                            })
+    
+                            objs.border1 = utility:Draw('Square', {
+                                Size = newUDim2(1,2,1,2);
+                                Position = newUDim2(0,-1,0,-1);
+                                ThemeColor = 'Option Border 1';
+                                ZIndex = z+2;
+                                Parent = objs.background;
+                            })
+    
+                            objs.border2 = utility:Draw('Square', {
+                                Size = newUDim2(1,2,1,2);
+                                Position = newUDim2(0,-1,0,-1);
+                                ThemeColor = 'Option Border 2';
+                                ZIndex = z+1;
+                                Parent = objs.border1;
+                            })
+    
+                            utility:Connection(objs.holder.MouseEnter, function()
+                                objs.border1.ThemeColor = 'Accent';
+                            end)
+    
+                            utility:Connection(objs.holder.MouseLeave, function()
+                                objs.border1.ThemeColor = color.state and 'Accent' or 'Option Border 1';
+                            end)
+    
+                            utility:Connection(objs.holder.MouseButton1Down, function()
+                                color:SetOpen(not color.open);
+                            end)
+    
+                        end
+                        ----------------------
+
+    
+                        function color:SetColor(c3, nocallback)
+                            if typeof(c3) == 'Color3' then
+                                local h,s,v = c3:ToHSV(); c3 = fromhsv(h, clamp(s,.005,.995), clamp(v,.005,.995))
+                                self.color = c3;
+                                self.objects.background.Color = c3;
+                                if not nocallback then
+                                    self.callback(c3, self.trans);
+                                end
+                                if self.open then
+                                    window.colorpicker:Visualize(self.color, self.trans);
+                                end
+                                if self.flag then
+                                    library.flags[self.flag] = c3;
+                                end
+                            end
+                        end
+    
+                        function color:SetTrans(trans, nocallback)
+                            if typeof(trans) == 'number' then
+                                self.trans = trans;
+                                if not nocallback then
+                                    self.callback(self.color, trans);
+                                end
+                                if self.open then
+                                    window.colorpicker:Visualize(self.color, self.trans);
+                                end
+                            end
+                        end
+    
+                        function color:SetOpen(bool)
+                            if typeof(bool) == 'boolean' then
+                                self.open = bool
+                                if bool then
+                                    if window.colorpicker.selected then
+                                        window.colorpicker.selected.open = false;
+                                    end
+                                    window.colorpicker.selected = color
+                                    window.colorpicker.objects.background.Parent = self.objects.background;
+                                    window.colorpicker.objects.background.Visible = true;
+                                    window.colorpicker:Visualize(color.color, color.trans)
+                                elseif window.colorpicker.selected == color then
+                                    window.colorpicker.selected = nil;
+                                    window.colorpicker.objects.background.Parent = window.objects.background;
+                                    window.colorpicker.objects.background.Visible = false;
+                                end
+                            end
+                        end
+    
+                        tooltip(color);
+                        color:SetColor(color.color, true);
+                        color:SetTrans(color.trans, true);
+                        self:UpdateOptions();
+                        return color
+                    end
+
+                    function toggle:AddBind(data)
+                        local bind = {
+                            class = 'bind';
+                            flag = data.flag;
+                            text = '';
+                            tooltip = '';
+                            bind = 'none';
+                            mode = 'toggle';
+                            order = #self.options+1;
+                            callback = function() end;
+                            keycallback = function() end;
+                            indicatorValue = library.keyIndicator:AddValue({value = 'value', key = 'key', enabled = false});
+                            noindicator = false;
+                            invertindicator = false;
+                            state = false;
+                            nomouse = false;
+                            enabled = true;
+                            binding = false;
+                            objects = {};
+                        };
+    
+                        local blacklist = {'objects'};
+                        for i,v in next, data do
+                            if not table.find(blacklist, i) and bind[i] ~= nil then
+                                bind[i] = v
+                            end
+                        end
+                        
+                        table.insert(self.options, bind)
+    
+                        if bind.flag then
+                            library.options[bind.flag] = bind;
+                        end
+
+                        if bind.bind == 'none' then
+                            bind.state = true
+                            if bind.flag then
+                                library.flags[bind.flag] = bind.state;
+                            end
+                            bind.callback(true)
+                            local display = bind.state; if bind.invertindicator then display = not bind.state; end
+                            bind.indicatorValue:SetEnabled(display and not bind.noindicator);
+                            bind.indicatorValue:SetKey((bind.text == nil or bind.text == '') and (bind.flag == nil and 'unknown' or bind.flag) or bind.text); -- this is so dumb
+                            bind.indicatorValue:SetValue('[Always]');
+                        end
+    
+                        --- Create Objects ---
+                        do
+                            local objs = bind.objects;
+                            local z = library.zindexOrder.window+25;
+    
+                            objs.holder = utility:Draw('Square', {
+                                Size = newUDim2(0,0,0,17);
+                                Transparency = 0;
+                                ZIndex = z+6;
+                                Parent = self.objects.holder;
+                            })
+    
+                            objs.keyText = utility:Draw('Text', {
+                                ThemeColor = 'Option Text 3';
+                                Size = 13;
+                                Font = 2;
+                                ZIndex = z+1;
+                                Parent = objs.holder;
+                            })
+    
+                            utility:Connection(objs.holder.MouseEnter, function()
+                                objs.keyText.ThemeColor = 'Accent';
+                            end)
+    
+                            utility:Connection(objs.holder.MouseLeave, function()
+                                objs.keyText.ThemeColor = bind.binding and 'Accent' or 'Option Text 3';
+                            end)
+    
+                            utility:Connection(objs.holder.MouseButton1Down, function()
+                                if not bind.binding then
+                                    bind:SetKeyText('...');
+                                    bind.binding = true;
+                                end
+                            end)
+    
+                        end
+                        ----------------------
+    
+                        local c
+                        function bind:SetBind(keybind)
+                            if c then
+                                c:Disconnect();
+                                if bind.flag then
+                                    library.flags[bind.flag] = false;
+                                end
+                                bind.callback(false);
+                            end
+                            local keyName = 'NONE'
+                            self.bind = (keybind and keybind) or keybind or self.bind
+                            if self.bind == Enum.KeyCode.Backspace then
+                                self.bind = 'none';
+
+                                if bind.flag then
+                                    library.flags[bind.flag] = bind.state;
+                                end
+                                self.callback(true)
+                                local display = bind.state; if bind.invertindicator then display = not bind.state; end
+                                bind.indicatorValue:SetEnabled(display and not bind.noindicator);
+                            else
+                                keyName = keyNames[keybind] or keybind.Name or keybind
+                            end
+                            if self.bind ~= 'none' then
+                                bind.state = false
+                                if bind.flag then
+                                    library.flags[bind.flag] = bind.state;
+                                end
+                                self.callback(false)
+                                local display = bind.state; if bind.invertindicator then display = not bind.state; end
+                                bind.indicatorValue:SetEnabled(display and not bind.noindicator);
+                            end
+                            self.keycallback(self.bind);
+                            self:SetKeyText(keyName:upper());
+                            self.indicatorValue:SetKey((self.text == nil or self.text == '') and (self.flag == nil and 'unknown' or self.flag) or self.text); -- this is so dumb
+                            self.indicatorValue:SetValue('['..keyName:upper()..']');
+                            if self.bind == 'none' then
+
+                            end
+                            self.objects.keyText.ThemeColor = self.objects.holder.Hover and 'Accent' or 'Option Text 3';
+                        end
+    
+                        function bind:SetKeyText(str)
+                            str = tostring(str);
+                            self.objects.keyText.Text = '['..str..']';
+                            self.objects.keyText.Position = newUDim2(0, 2, 0, 2);
+                            self.objects.holder.Size = newUDim2(0,self.objects.keyText.TextBounds.X+2,0,17)
+                            toggle:UpdateOptions();
+                        end
+    
+                        utility:Connection(inputservice.InputBegan, function(inp)
+                            if inputservice:GetFocusedTextBox() then
+                                return
+                            elseif bind.binding then
+                                local key = (table.find({Enum.UserInputType.MouseButton1, Enum.UserInputType.MouseButton2, Enum.UserInputType.MouseButton3}, inp.UserInputType) and not bind.nomouse) and inp.UserInputType
+                                bind:SetBind(key or (not table.find(blacklistedKeys, inp.KeyCode)) and inp.KeyCode)
+                                bind.binding = false
+                            elseif not bind.binding and self.bind == 'none' then
+                                bind.state = true
+                                library.flags[bind.flag] = bind.state
+                                local display = bind.state; if bind.invertindicator then display = not bind.state; end
+                                bind.indicatorValue:SetEnabled(display and not bind.noindicator)
+                            elseif (inp.KeyCode == bind.bind or inp.UserInputType == bind.bind) and not bind.binding then
+                                if bind.mode == 'toggle' then
+                                    bind.state = not bind.state
+                                    if bind.flag then
+                                        library.flags[bind.flag] = bind.state;
+                                    end
+                                    bind.callback(bind.state)
+                                    local display = bind.state; if bind.invertindicator then display = not bind.state; end
+                                    bind.indicatorValue:SetEnabled(display and not bind.noindicator);
+                                elseif bind.mode == 'hold' then
+                                    if bind.flag then
+                                        library.flags[bind.flag] = true;
+                                    end
+                                    bind.indicatorValue:SetEnabled((not bind.invertindicator and true or false) and not bind.noindicator);
+                                    c = utility:Connection(runservice.RenderStepped, function()
+                                        if bind.callback then
+                                            bind.callback(true);
+                                        end
+                                    end)
+                                end
+                            end
+                        end)
+    
+                        utility:Connection(inputservice.InputEnded, function(inp)
+                            if bind.bind ~= 'none' then
+                                if inp.KeyCode == bind.bind or inp.UserInputType == bind.bind then
+                                    if c then
+                                        c:Disconnect();
+                                        if bind.flag then
+                                            library.flags[bind.flag] = false;
+                                        end
+                                        if bind.callback then
+                                            bind.callback(false);
+                                        end
+                                        bind.indicatorValue:SetEnabled(bind.invertindicator and true or false);
+                                    end
+                                end
+                            end
+                        end)
+    
+                        tooltip(bind);
+                        bind:SetBind(bind.bind);
+                        self:UpdateOptions();
+                        return bind
+                    end
+
+                    function toggle:AddSlider(data)
+                        local slider = {
+                            class = 'slider';
+                            flag = data.flag;
+                            suffix = '';
+                            tooltip = '';
+                            order = #self.options+1;
+                            value = 0;
+                            min = 0;
+                            max = 100;
+                            increment = 1;
+                            callback = function() end;
+                            enabled = true;
+                            dragging = false;
+                            focused = false;
+                            objects = {};
+                        };
+    
+                        local blacklist = {'objects', 'dragging'};
+                        for i,v in next, data do
+                            if not table.find(blacklist, i) and (slider[i] ~= nil and typeof(slider[i]) == typeof(v)) then
+                                slider[i] = v;
+                            end
+                        end
                 
-            end)
+                        table.insert(self.options, slider)
 
-            utility:Connect(rs.Heartbeat, function()
-                if slider_flag ~= nil then
-                    self.saved_settings[slider_flag] = {
-                        enabled = anim_enabled:Get(),
-                        min = anim_min:Get(),
-                        max = anim_max:Get(),
-                        speed = anim_speed:Get(),
-                        dec = library.pointers[slider_flag].dec,
-                        random_angle_offset = self.saved_settings[slider_flag].random_angle_offset
-                    }
-                end
-
-                for i, v in pairs(self.saved_settings) do
-                    if v.enabled then
-                        local sin_tick = 1 + math.sin(math.rad((tick()*50*v.speed)) + math.rad(v.random_angle_offset))
-
-                        if tostring(sin_tick):sub(1, 4) == "1.99" then
-                            sin_tick = 2
+                        if slider.flag then
+                            library.flags[slider.flag] = slider.value;
+                            library.options[slider.flag] = slider;
                         end
 
-                        library.pointers[i]:Set(math.clamp(math.floor((v.min + (((v.max - v.min)/2) * sin_tick)) * v.dec) / v.dec, v.min, v.max))
+                        --- Create Objects ---
+                        do
+                            local objs = slider.objects;
+                            local z = library.zindexOrder.window+25;
+
+                            objs.holder = utility:Draw('Square', {
+                                Size = newUDim2(1,0,0,20);
+                                Transparency = 0;
+                                ZIndex = z+6;
+                                Parent = toggle.objects.holder;
+                            })
+
+                            objs.background = utility:Draw('Square', {
+                                Size = newUDim2(1,-4,1,-8);
+                                Position = newUDim2(0,2,0,4);
+                                ThemeColor = 'Option Background';
+                                ZIndex = z+2;
+                                Parent = objs.holder;
+                            })
+
+                            objs.slider = utility:Draw('Square', {
+                                Size = newUDim2(0,0,1,0);
+                                ThemeColor = 'Accent';
+                                ZIndex = z+3;
+                                Parent = objs.background;
+                            })
+
+                            objs.border1 = utility:Draw('Square', {
+                                Size = newUDim2(1,2,1,2);
+                                Position = newUDim2(0,-1,0,-1);
+                                ThemeColor = 'Option Border 1';
+                                ZIndex = z+1;
+                                Parent = objs.background;
+                            })
+
+                            objs.border2 = utility:Draw('Square', {
+                                Size = newUDim2(1,2,1,2);
+                                Position = newUDim2(0,-1,0,-1);
+                                ThemeColor = 'Option Border 2';
+                                ZIndex = z;
+                                Parent = objs.border1;
+                            })
+    
+                            objs.gradient = utility:Draw('Image', {
+                                Size = newUDim2(1,0,1,0);
+                                Data = library.images.gradientp90;
+                                Transparency = .65;
+                                ZIndex = z+4;
+                                Parent = objs.background;
+                            })
+    
+                            objs.text = utility:Draw('Text', {
+                                Position = newUDim2(.5,0,0,-1);
+                                ThemeColor = 'Option Text 3';
+                                Size = 13;
+                                Font = 2;
+                                ZIndex = z+5;
+                                Outline = true;
+                                Center = true;
+                                Parent = objs.background;
+                            })
+
+                            utility:Connection(objs.holder.MouseEnter, function()
+                                objs.border1.ThemeColor = 'Accent';
+                            end)
+    
+                            utility:Connection(objs.holder.MouseLeave, function()
+                                objs.border1.ThemeColor = slider.dragging and 'Accent' or 'Option Border 1';
+                            end)
+    
+                            local c;
+                            local inputNumber = '';
+                            utility:Connection(slider.objects.holder.MouseButton1Down, function()
+                                if inputservice:IsKeyDown(Enum.KeyCode.LeftControl) then
+                                    if slider.focused then
+                                        slider.focused = false;
+                                        c:Disconnect();
+                                    else
+                                        objs.text.Text = tostring(slider.value)..tostring(slider.suffix)..'/'..tostring(slider.max)..tostring(slider.suffix)..' []';
+                                        slider.focused = true;
+                                        inputNumber = '';
+                                        c = utility:Connection(inputservice.InputBegan, function(inp)
+                                            if library.numberStrings[inp.KeyCode.Name] then
+                                                local number = library.numberStrings[inp.KeyCode.Name];
+                                                inputNumber = inputNumber..tostring(number);
+                                                objs.text.Text = string.format("%.14g", slider.value) .. tostring(slider.suffix) .. "/" .. slider.max .. tostring(slider.suffix) .. " [" .. inputNumber .. "]";
+                                            elseif inp.KeyCode == Enum.KeyCode.Backspace then
+                                                inputNumber = inputNumber:sub(1,-2);
+                                                objs.text.Text = string.format("%.14g", slider.value)..tostring(slider.suffix)..'/'..slider.max..tostring(slider.suffix)..' ['..inputNumber..']';
+                                            elseif inp.KeyCode == Enum.KeyCode.Return then
+                                                slider:SetValue(tonumber(inputNumber))
+                                                slider.focused = false;
+                                                c:Disconnect();
+                                            elseif inp.KeyCode == Enum.KeyCode.Escape then
+                                                slider:SetValue(slider.value, true)
+                                                slider.focused = false;
+                                                c:Disconnect();
+                                            end
+                                        end)
+                                    end
+                                else
+                                    slider.dragging = true;
+                                    library.draggingSlider = slider;
+                                end
+                            end)
+    
+                            utility:Connection(button1up, function()
+                                objs.border1.ThemeColor = objs.holder.Hover and 'Accent' or 'Option Border 1';
+                                slider.dragging = false;
+                                library.draggingSlider = nil;
+                            end)
+    
+                        end
+                        ----------------------
+    
+                        function slider:SetValue(value, nocallback)
+                            if typeof(value) == 'number' then
+                                local newValue = clamp(self.increment * floor(value/self.increment), self.min, self.max);
+                                local size, pos = self.objects.slider.Size, self.objects.slider.Position;
+    
+                                if self.min >= 0 then
+                                    size = newUDim2((newValue - self.min) / (self.max - self.min), 0, 1, 0);
+                                else
+                                    size = newUDim2(newValue / (self.max - self.min), 0, 1, 0);
+                                    pos = newUDim2((0 - self.min) / (self.max - self.min), 0, 0, 0);
+                                end
+    
+                                utility:Tween(self.objects.slider, 'Size', size, .05, Enum.EasingDirection.Out, Enum.EasingStyle.Quad);
+                                utility:Tween(self.objects.slider, 'Position', pos, .05, Enum.EasingDirection.Out, Enum.EasingStyle.Quad);
+    
+                                self.value = newValue;
+                                library.flags[self.flag] = newValue;
+                                self.objects.text.Text = string.format("%.14g",newValue)..tostring(self.suffix)..'/'..self.max..tostring(self.suffix);
+                                self.objects.text.ThemeColor = (self.min < 0 and newValue == 0 or newValue == self.min)  and (self.risky and 'Risky Text' or 'Option Text 3') or (self.risky and 'Risky Text Enabled' or 'Option Text 1');
+    
+                                if not nocallback then
+                                    self.callback(newValue);
+                                end
+    
+                            end
+                        end
+
+                        tooltip(slider);
+                        slider:SetValue(slider.value, true);
+                        self:UpdateOptions();
+                        return slider
+                    end
+
+                    function toggle:AddList(data)
+                        local list = {
+                            class = 'list';
+                            flag = data.flag;
+                            text = '';
+                            selected = '';
+                            tooltip = '';
+                            order = #self.options+1;
+                            callback = function() end;
+                            enabled = true;
+                            multi = false;
+                            open = false;
+                            values = {};
+                            objects = {};
+                        }
+    
+                        table.insert(self.options, list);
+    
+                        local blacklist = {'objects'};
+                        for i,v in next, data do
+                            if not table.find(blacklist, i) ~= list[i] ~= nil then
+                                list[i] = v
+                            end
+                        end
+    
+                        if list.flag then
+                            library.flags[list.flag] = list.selected;
+                            library.options[list.flag] = list;
+                        end
+    
+                        -- Create Objects --
+                        do
+                            local objs = list.objects;
+                            local z = library.zindexOrder.window+25;
+    
+                            objs.holder = utility:Draw('Square', {
+                                Size = newUDim2(1,0,0,22);
+                                Transparency = 0;
+                                ZIndex = z+6;
+                                Parent = toggle.objects.holder;
+                            })
+    
+                            objs.background = utility:Draw('Square', {
+                                Size = newUDim2(1,-4,1,-8);
+                                Position = newUDim2(0,2,0,4);
+                                ThemeColor = 'Option Background';
+                                ZIndex = z+2;
+                                Parent = objs.holder;
+                            })
+    
+                            objs.border1 = utility:Draw('Square', {
+                                Size = newUDim2(1,2,1,2);
+                                Position = newUDim2(0,-1,0,-1);
+                                ThemeColor = 'Option Border 1';
+                                ZIndex = z+1;
+                                Parent = objs.background;
+                            })
+    
+                            objs.border2 = utility:Draw('Square', {
+                                Size = newUDim2(1,2,1,2);
+                                Position = newUDim2(0,-1,0,-1);
+                                ThemeColor = 'Option Border 2';
+                                ZIndex = z;
+                                Parent = objs.border1;
+                            })
+    
+                            objs.gradient = utility:Draw('Image', {
+                                Size = newUDim2(1,0,1,0);
+                                Data = library.images.gradientp90;
+                                Transparency = .65;
+                                ZIndex = z+4;
+                                Parent = objs.background;
+                            })
+    
+                            objs.inputText = utility:Draw('Text', {
+                                Position = newUDim2(0,4,0,0);
+                                ThemeColor = 'Option Text 2';
+                                Text = 'none',
+                                Size = 13;
+                                Font = 2;
+                                ZIndex = z+5;
+                                Outline = true;
+                                Parent = objs.background;
+                            })
+    
+                            objs.openText = utility:Draw('Text', {
+                                Position = newUDim2(1,-10,0,0);
+                                ThemeColor = 'Option Text 3';
+                                Text = '+';
+                                Size = 13;
+                                Font = 2;
+                                ZIndex = z+5;
+                                Outline = true;
+                                Parent = objs.background;
+                            })
+    
+                            utility:Connection(objs.holder.MouseEnter, function()
+                                objs.border1.ThemeColor = 'Accent';
+                            end)
+    
+                            utility:Connection(objs.holder.MouseLeave, function()
+                                objs.border1.ThemeColor = 'Option Border 1';
+                            end)
+    
+                            utility:Connection(objs.holder.MouseButton1Down, function()
+                                if list.open then
+                                    list.open = false;
+                                    objs.openText.Text = '+';
+                                    if window.dropdown.selected == list then
+                                        window.dropdown.selected = nil;
+                                        window.dropdown.objects.background.Visible = false;
+                                    end
+                                else
+                                    if window.dropdown.selected ~= nil then
+                                        window.dropdown.selected.open = false
+                                    end
+                                    list.open = true;
+                                    objs.openText.Text = '-';
+                                    window.dropdown.selected = list;
+                                    window.dropdown.objects.background.Visible = true;
+                                    window.dropdown.objects.background.Parent = objs.holder;
+                                    window.dropdown:Refresh();
+                                end
+                            end)
+    
+    
+                        end
+                        --------------------
+    
+                        function list:Select(option, nocallback)
+                            option = typeof(option) == 'table' and (self.multi == true and option or (#option == 0 and nil or option[1])) or self.multi == true and {option} or option;
+                            if option ~= nil then
+                                self.selected = option;
+                                local text = typeof(option) == 'table' and (#option == 0 and "none" or table.concat(option, ', ')) or tostring(option);
+                                local label = self.objects.inputText
+                                label.Text = text;
+                                if label.TextBounds.X > self.objects.background.Object.Size.X - 10 then
+                                    local split = text:split('');
+                                    for i = 1,#split do
+                                        label.Text = table.concat(split, '', 1, i)
+                                        if label.TextBounds.X > self.objects.background.Object.Size.X - 10 then
+                                            label.Text = label.Text:sub(1,-6)..'...';
+                                            break
+                                        end
+                                    end
+                                end
+                                if self.flag then
+                                    library.flags[self.flag] = self.selected
+                                end
+                                if not nocallback then
+                                    self.callback(self.selected);
+                                end
+                            end
+                        end
+    
+                        function list:AddValue(value)
+                            table.insert(list.values, tostring(value));
+                            if window.dropdown.selected == list then
+                                window.dropdown:Refresh()
+                            end
+                        end
+    
+                        function list:RemoveValue(value)
+                            if table.find(list.values, value) then
+                                table.remove(list.values, table.find(list.values, value));
+                                if window.dropdown.selected == list then
+                                    window.dropdown:Refresh()
+                                end
+                            end
+                        end
+    
+                        function list:ClearValues()
+                            table.clear(list.values);
+                            if window.dropdown.selected == list then
+                                window.dropdown:Refresh()
+                            end
+                        end
+    
+                        tooltip(list);
+                        list:Select((data.value or data.selected) or (list.multi and 'none' or list.values[1]), true);
+                        self:UpdateOptions();
+                        return list
+                    end
+
+                    tooltip(toggle);
+                    toggle:SetText(toggle.text);
+                    toggle:SetState(toggle.state, true);
+                    self:UpdateOptions();
+                    return toggle
+                end
+
+                -- // Slider
+                function section:AddSlider(data)
+                    local slider = {
+                        class = 'slider';
+                        flag = data.flag;
+                        text = '';
+                        tooltip = '';
+                        suffix = '';
+                        order = #self.options+1;
+                        value = 0;
+                        min = 0;
+                        max = 100;
+                        increment = 1;
+                        callback = function() end;
+                        enabled = true;
+                        dragging = false;
+                        focused = false;
+                        risky = false;
+                        objects = {};
+                    };
+
+                    local blacklist = {'objects', 'dragging'};
+                    for i,v in next, data do
+                        if not table.find(blacklist, i) and (slider[i] ~= nil and typeof(slider[i]) == typeof(v)) then
+                            slider[i] = v;
+                        end
+                    end
+                    
+                    table.insert(self.options, slider)
+
+                    if slider.flag then
+                        library.flags[slider.flag] = slider.value;
+                        library.options[slider.flag] = slider;
+                    end
+
+                    --- Create Objects ---
+                    do
+                        local objs = slider.objects;
+                        local z = library.zindexOrder.window+25;
+
+                        objs.holder = utility:Draw('Square', {
+                            Size = newUDim2(1,0,0,32);
+                            Transparency = 0;
+                            ZIndex = z+4;
+                            Parent = section.objects.optionholder;
+                        })
+
+                        objs.background = utility:Draw('Square', {
+                            Size = newUDim2(1,-4,0,11);
+                            Position = newUDim2(0,2,1,-14);
+                            ThemeColor = 'Option Background';
+                            ZIndex = z+2;
+                            Parent = objs.holder;
+                        })
+
+                        objs.slider = utility:Draw('Square', {
+                            Size = newUDim2(0,0,1,0);
+                            ThemeColor = 'Accent';
+                            ZIndex = z+3;
+                            Parent = objs.background;
+                        })
+
+                        objs.border1 = utility:Draw('Square', {
+                            Size = newUDim2(1,2,1,2);
+                            Position = newUDim2(0,-1,0,-1);
+                            ThemeColor = 'Option Border 1';
+                            ZIndex = z+1;
+                            Parent = objs.background;
+                        })
+
+                        objs.border2 = utility:Draw('Square', {
+                            Size = newUDim2(1,2,1,2);
+                            Position = newUDim2(0,-1,0,-1);
+                            ThemeColor = 'Option Border 2';
+                            ZIndex = z;
+                            Parent = objs.border1;
+                        })
+
+                        objs.gradient = utility:Draw('Image', {
+                            Size = newUDim2(1,0,1,0);
+                            Data = library.images.gradientp90;
+                            Transparency = .65;
+                            ZIndex = z+4;
+                            Parent = objs.background;
+                        })
+
+                        objs.text = utility:Draw('Text', {
+                            Position = newUDim2(0,2,0,1);
+                            ThemeColor = 'Option Text 3';
+                            Size = 13;
+                            Font = 2;
+                            ZIndex = z+1;
+                            Outline = true;
+                            Parent = objs.holder;
+                        })
+
+                        objs.plusDetector = utility:Draw('Square', {
+                            Size = newUDim2(0,14,0,14);
+                            Position = newUDim2(1,-28,0,1);
+                            Transparency = 0;
+                            ZIndex = z+5;
+                            Parent = objs.holder;
+                        })
+
+                        objs.minusDetector = utility:Draw('Square', {
+                            Size = newUDim2(0,14,0,14);
+                            Position = newUDim2(1,-14,0,1);
+                            Transparency = 0;
+                            ZIndex = z+5;
+                            Parent = objs.holder;
+                        })
+
+                        objs.plusText = utility:Draw('Text', {
+                            Position = newUDim2(.5,0,0,-1);
+                            ThemeColor = 'Option Text 3';
+                            Text = '+';
+                            Size = 13;
+                            Font = 2;
+                            ZIndex = z+4;
+                            Center = true;
+                            Outline = true;
+                            Parent = objs.plusDetector;
+                        })
+
+                        objs.minusText = utility:Draw('Text', {
+                            Position = newUDim2(.5,0,0,-1);
+                            ThemeColor = 'Option Text 3';
+                            Text = '-';
+                            Size = 13;
+                            Font = 2;
+                            ZIndex = z+4;
+                            Center = true;
+                            Outline = true;
+                            Parent = objs.minusDetector;
+                        })
+
+                        utility:Connection(objs.holder.MouseEnter, function()
+                            objs.border1.ThemeColor = 'Accent';
+                        end)
+
+                        utility:Connection(objs.holder.MouseLeave, function()
+                            objs.border1.ThemeColor = slider.dragging and 'Accent' or 'Option Border 1';
+                        end)
+
+                        utility:Connection(slider.objects.plusDetector.MouseButton1Down,function()
+                            slider:SetValue(slider.value + (inputservice:IsKeyDown(Enum.KeyCode.LeftShift) and 10 or slider.increment))
+                        end)
+    
+                        utility:Connection(slider.objects.minusDetector.MouseButton1Down,function()
+                            slider:SetValue(slider.value - (inputservice:IsKeyDown(Enum.KeyCode.LeftShift) and 10 or slider.increment))
+                        end)
+
+
+                        local c;
+                        local inputNumber = '';
+                        utility:Connection(slider.objects.holder.MouseButton1Down, function()
+                            if inputservice:IsKeyDown(Enum.KeyCode.LeftControl) then
+                                if slider.focused then
+                                    slider.focused = false;
+                                    c:Disconnect();
+                                else
+                                    objs.text.Text = slider.text..': '..tostring(slider.value)..tostring(slider.suffix)..' []';
+                                    slider.focused = true;
+                                    inputNumber = '';
+                                    c = utility:Connection(inputservice.InputBegan, function(inp)
+                                        if library.numberStrings[inp.KeyCode.Name] then
+                                            local number = library.numberStrings[inp.KeyCode.Name];
+                                            inputNumber = inputNumber..tostring(number);
+                                            objs.text.Text = slider.text..': '..string.format("%.14g",slider.value)..tostring(slider.suffix)..' ['..inputNumber..']';
+                                        elseif inp.KeyCode == Enum.KeyCode.Backspace then
+                                            inputNumber = inputNumber:sub(1,-2);
+                                            objs.text.Text = slider.text..': '..string.format("%.14g",slider.value)..tostring(slider.suffix)..' ['..inputNumber..']';
+                                        elseif inp.KeyCode == Enum.KeyCode.Return then
+                                            slider:SetValue(tonumber(inputNumber))
+                                            slider.focused = false;
+                                            c:Disconnect();
+                                        elseif inp.KeyCode == Enum.KeyCode.Escape then
+                                            slider:SetValue(slider.value, true)
+                                            slider.focused = false;
+                                            c:Disconnect();
+                                        end
+                                    end)
+
+                                end
+
+
+                            else
+                                slider.dragging = true;
+                                library.draggingSlider = slider;
+                            end
+                        end)
+
+                        utility:Connection(button1up, function()
+                            objs.border1.ThemeColor = objs.holder.Hover and 'Accent' or 'Option Border 1';
+                            slider.dragging = false;
+                            library.draggingSlider = nil;
+                        end)
+
+                    end
+                    ----------------------
+
+                    function slider:SetValue(value, nocallback)
+                        if typeof(value) == 'number' then
+                            local newValue = clamp(self.increment * floor(value/self.increment), self.min, self.max);
+                            local size, pos = self.objects.slider.Size, self.objects.slider.Position;
+
+                            if self.min >= 0 then
+                                size = newUDim2((newValue - self.min) / (self.max - self.min), 0, 1, 0);
+                            else
+                                size = newUDim2(newValue / (self.max - self.min), 0, 1, 0);
+                                pos = newUDim2((0 - self.min) / (self.max - self.min), 0, 0, 0);
+                            end
+
+                            utility:Tween(self.objects.slider, 'Size', size, .05, Enum.EasingDirection.Out, Enum.EasingStyle.Quad);
+                            utility:Tween(self.objects.slider, 'Position', pos, .05, Enum.EasingDirection.Out, Enum.EasingStyle.Quad);
+
+                            self.value = newValue;
+                            library.flags[self.flag] = newValue;
+                            self.objects.text.Text = slider.text..': '..string.format("%.14g",newValue)..tostring(self.suffix);
+                            self.objects.text.ThemeColor = (self.min < 0 and newValue == 0 or newValue == self.min)  and (self.risky and 'Risky Text' or 'Option Text 3') or (self.risky and 'Risky Text Enabled' or 'Option Text 1');
+
+                            if not nocallback then
+                                self.callback(newValue);
+                            end
+
+                        end
+                    end
+
+                    function slider:SetText(str)
+                        if typeof(str) == 'string' then
+                            self.text = str;
+                            self.objects.text.Text = str..': '..tostring(self.value)..tostring(self.suffix);
+                        end
+                    end
+
+                    tooltip(slider);
+                    slider:SetText(slider.text);
+                    slider:SetValue(slider.value, true);
+                    self:UpdateOptions();
+                    return slider
+                end
+
+                -- // Button
+                function section:AddButton(data)
+                    local button = {
+                        class = 'button';
+                        flag = data.flag;
+                        text = '';
+                        suffix = '';
+                        tooltip = '';
+                        order = #self.options+1;
+                        callback = function() end;
+                        confirm = false;
+                        enabled = true;
+                        risky = false;
+                        objects = {};
+                        subbuttons = {};
+                    };
+
+                    local blacklist = {'objects'};
+                    for i,v in next, data do
+                        if not table.find(blacklist, i) and button[i] ~= nil then
+                            button[i] = v;
+                        end
+                    end
+        
+                    table.insert(self.options, button)
+
+                    if button.flag then
+                        library.options[button.flag] = button;
+                    end
+
+                    --- Create Objects ---
+                    do
+                        local objs = button.objects;
+                        local z = library.zindexOrder.window+25;
+
+                        objs.holder = utility:Draw('Square', {
+                            Size = newUDim2(1,0,0,22);
+                            Transparency = 0;
+                            ZIndex = z+4;
+                            Parent = section.objects.optionholder;
+                        })
+
+                        objs.background = utility:Draw('Square', {
+                            Size = newUDim2(1,-4,0,14);
+                            Position = newUDim2(0,2,0,4);
+                            ThemeColor = 'Option Background';
+                            ZIndex = z+2;
+                            Parent = objs.holder;
+                        })
+
+                        objs.border1 = utility:Draw('Square', {
+                            Size = newUDim2(1,2,1,2);
+                            Position = newUDim2(0,-1,0,-1);
+                            ThemeColor = 'Option Border 1';
+                            ZIndex = z+1;
+                            Parent = objs.background;
+                        })
+
+                        objs.border2 = utility:Draw('Square', {
+                            Size = newUDim2(1,2,1,2);
+                            Position = newUDim2(0,-1,0,-1);
+                            ThemeColor = 'Option Border 2';
+                            ZIndex = z;
+                            Parent = objs.border1;
+                        })
+
+                        objs.gradient = utility:Draw('Image', {
+                            Size = newUDim2(1,0,1,0);
+                            Data = library.images.gradientp90;
+                            Transparency = .65;
+                            ZIndex = z+3;
+                            Parent = objs.background;
+                        })
+
+                        objs.text = utility:Draw('Text', {
+                            Position = newUDim2(.5,0,0,0);
+                            ThemeColor = 'Option Text 3';
+                            Size = 13;
+                            Font = 2;
+                            ZIndex = z+4;
+                            Outline = true;
+                            Center = true;
+                            Parent = objs.background;
+                        })
+
+                        utility:Connection(objs.holder.MouseEnter, function()
+                            objs.border1.ThemeColor = 'Accent';
+                        end)
+
+                        utility:Connection(objs.holder.MouseLeave, function()
+                            objs.border1.ThemeColor = 'Option Border 1';
+                            objs.text.ThemeColor = self.risky and 'Risky Text' or 'Option Text 3';
+                            objs.background.ThemeColor = 'Option Background';
+                            objs.background.ThemeColorOffset = 0;
+                        end)
+
+                        utility:Connection(objs.holder.MouseButton1Up, function()
+                            objs.text.ThemeColor = self.risky and 'Risky Text' or  'Option Text 3';
+                            objs.background.ThemeColor = 'Option Background';
+                            objs.background.ThemeColorOffset = 0;
+                        end)
+
+                        local clicked, counting = false, false
+                        utility:Connection(objs.holder.MouseButton1Down, function()
+                            objs.text.ThemeColor = self.risky and 'Risky Text Enabled' or 'Option Text 2';
+                            objs.background.ThemeColor = 'Accent';
+                            objs.background.ThemeColorOffset = -95;
+
+                            task.spawn(function() -- this is ugly and i do not care :)
+                                if button.confirm then
+                                    if clicked then
+                                        clicked = false
+                                        counting = false
+                                        objs.text.Text = button.text
+                                        button.callback()
+                                    else
+                                        clicked = true
+                                        counting = true
+                                        for i = 3,1,-1 do
+                                            if not counting then
+                                                break
+                                            end
+                                            objs.text.Text = 'Confirm '..button.text..'? '..tostring(i)
+                                            wait(1)
+                                        end
+                                        clicked = false
+                                        counting = false
+                                        objs.text.Text = button.text
+                                    end
+                                else
+                                    button.callback()
+                                end
+                            end)
+
+                        end)
+
+                    end
+                    ----------------------
+                    function button:AddButton(data)
+                        local button = {
+                            class = 'button';
+                            flag = data.flag;
+                            text = '';
+                            suffix = '';
+                            tooltip = '';
+                            order = #self.subbuttons+1;
+                            callback = function() end;
+                            confirm = false;
+                            enabled = true;
+                            objects = {};
+                        };
+    
+                        local blacklist = {'objects'};
+                        for i,v in next, data do
+                            if not table.find(blacklist, i) and button[i] ~= nil then
+                                button[i] = v;
+                            end
+                        end
+            
+                        table.insert(self.subbuttons, button)
+    
+                        if button.flag then
+                            library.options[button.flag] = button;
+                        end
+    
+                        --- Create Objects ---
+                        do
+                            local objs = button.objects;
+                            local z = library.zindexOrder.window+25;
+    
+                            objs.holder = utility:Draw('Square', {
+                                Size = newUDim2(1,0,1,0);
+                                Transparency = 0;
+                                ZIndex = z+5;
+                                Parent = self.objects.holder;
+                            })
+    
+                            objs.background = utility:Draw('Square', {
+                                Size = newUDim2(1,-4,1,-8);
+                                Position = newUDim2(0,2,0,4);
+                                ThemeColor = 'Option Background';
+                                ZIndex = z+2;
+                                Parent = objs.holder;
+                            })
+    
+                            objs.border1 = utility:Draw('Square', {
+                                Size = newUDim2(1,2,1,2);
+                                Position = newUDim2(0,-1,0,-1);
+                                ThemeColor = 'Option Border 1';
+                                ZIndex = z+1;
+                                Parent = objs.background;
+                            })
+    
+                            objs.border2 = utility:Draw('Square', {
+                                Size = newUDim2(1,2,1,2);
+                                Position = newUDim2(0,-1,0,-1);
+                                ThemeColor = 'Option Border 2';
+                                ZIndex = z;
+                                Parent = objs.border1;
+                            })
+    
+                            objs.gradient = utility:Draw('Image', {
+                                Size = newUDim2(1,0,1,0);
+                                Data = library.images.gradientp90;
+                                Transparency = .65;
+                                ZIndex = z+3;
+                                Parent = objs.background;
+                            })
+    
+                            objs.text = utility:Draw('Text', {
+                                Position = newUDim2(.5,0,0,0);
+                                ThemeColor = 'Option Text 3';
+                                Size = 13;
+                                Font = 2;
+                                ZIndex = z+4;
+                                Outline = true;
+                                Center = true;
+                                Parent = objs.background;
+                            })
+    
+                            utility:Connection(objs.holder.MouseEnter, function()
+                                objs.border1.ThemeColor = 'Accent';
+                            end)
+    
+                            utility:Connection(objs.holder.MouseLeave, function()
+                                objs.border1.ThemeColor = 'Option Border 1';
+                                objs.text.ThemeColor = self.risky and 'Risky Text' or 'Option Text 3';
+                                objs.background.ThemeColor = 'Option Background';
+                                objs.background.ThemeColorOffset = 0;
+                            end)
+    
+                            utility:Connection(objs.holder.MouseButton1Up, function()
+                                objs.text.ThemeColor = self.risky and 'Risky Text' or 'Option Text 3';
+                                objs.background.ThemeColor = 'Option Background';
+                                objs.background.ThemeColorOffset = 0;
+                            end)
+    
+                            local clicked, counting = false, false
+                            utility:Connection(objs.holder.MouseButton1Down, function()
+                                objs.text.ThemeColor = self.risky and 'Risky Text Enabled' or 'Option Text 2';
+                                objs.background.ThemeColor = 'Accent';
+                                objs.background.ThemeColorOffset = -95;
+    
+                                task.spawn(function() -- this is ugly and i do not care :)
+                                    if button.confirm then
+                                        if clicked then
+                                            clicked = false
+                                            counting = false
+                                            objs.text.Text = button.text
+                                            button.callback()
+                                        else
+                                            clicked = true
+                                            counting = true
+                                            for i = 3,1,-1 do
+                                                if not counting then
+                                                    break
+                                                end
+                                                objs.text.Text = 'Confirm '..button.text..'? '..tostring(i)
+                                                wait(1)
+                                            end
+                                            clicked = false
+                                            counting = false
+                                            objs.text.Text = button.text
+                                        end
+                                    else
+                                        button.callback()
+                                    end
+                                end)
+    
+                            end)
+    
+                        end
+                        ----------------------
+    
+                        function button:SetText(str)
+                            if typeof(str) == 'string' then
+                                self.text = str;
+                                self.objects.text.Text = str;
+                            end
+                        end
+    
+                        tooltip(button);
+                        button:SetText(button.text);
+                        self:UpdateOptions();
+                        return button
+                    end
+                    ----------------------
+
+                    function button:UpdateOptions() -- this so dumb XD
+                        local buttons = 1 + #self.subbuttons;
+                        local buttonSize = (1 / buttons) - .005;
+                        self.objects.background.Size = newUDim2(buttonSize,-4,0,14);
+                        for i,v in next, self.subbuttons do
+                            v.objects.holder.Size = newUDim2(buttonSize,0,1,0);
+                            v.objects.holder.Position = newUDim2(i * buttonSize + .01, 0, 0, 0)
+                        end
+                    end
+
+                    function button:SetText(str)
+                        if typeof(str) == 'string' then
+                            self.text = str;
+                            self.objects.text.Text = str;
+                        end
+                    end
+
+                    tooltip(button);
+                    button:SetText(button.text);
+                    self:UpdateOptions();
+                    return button
+                end
+
+                -- // Separator
+                function section:AddSeparator(data)
+                    local separator = {
+                        class = 'separator';
+                        flag = data.flag;
+                        text = '';
+                        order = #self.options+1;
+                        enabled = true;
+                        objects = {};
+                    };
+
+                    local blacklist = {'objects', 'dragging'};
+                    for i,v in next, data do
+                        if not table.find(blacklist, i) and (separator[i] ~= nil and typeof(separator[i]) == typeof(v)) then
+                            separator[i] = v;
+                        end
+                    end
+        
+                    table.insert(self.options, separator)
+
+                    --- Create Objects ---
+                    do
+                        local objs = separator.objects;
+                        local z = library.zindexOrder.window+25;
+
+                        objs.holder = utility:Draw('Square', {
+                            Size = newUDim2(1,0,0,18);
+                            Transparency = 0;
+                            ZIndex = z;
+                            Parent = section.objects.optionholder;
+                        })
+
+                        objs.line1 = utility:Draw('Square', {
+                            Position = newUDim2(0,0,0,1);
+                            ThemeColor = 'Option Background';
+                            ZIndex = z+1;
+                            Parent = objs.holder;
+                        })
+
+                        objs.line2 = utility:Draw('Square', {
+                            Position = newUDim2(0,0,0,1);
+                            ThemeColor = 'Option Background';
+                            ZIndex = z+1;
+                            Parent = objs.holder;
+                        })
+
+                        objs.border1 = utility:Draw('Square', {
+                            Size = newUDim2(1,2,1,2);
+                            Position = newUDim2(0,-1,0,-1);
+                            ThemeColor = 'Option Border 2';
+                            ZIndex = z;
+                            Parent = objs.line1;
+                        })
+
+                        objs.border2 = utility:Draw('Square', {
+                            Size = newUDim2(1,2,1,2);
+                            Position = newUDim2(0,-1,0,-1);
+                            ThemeColor = 'Option Border 2';
+                            ZIndex = z;
+                            Parent = objs.line2;
+                        })
+
+                        objs.text = utility:Draw('Text', {
+                            Position = newUDim2(.5,0,0,1);
+                            ThemeColor = 'Option Text 2';
+                            Size = 13;
+                            Font = 2;
+                            ZIndex = z;
+                            Outline = true;
+                            Center = true;
+                            Parent = objs.holder;
+                        })
+
+                    end
+                    ----------------------
+
+                    function separator:SetText(str)
+                        if typeof(str) == 'string' then
+                            self.text = str;
+                            self.objects.text.Text = str;
+                            local xScale = ( 1- utility:ConvertNumberRange(self.objects.text.TextBounds.X, 0, self.objects.holder.Object.Size.X, 0, 1)) / 2 - (str == '' and 0 or .04)
+                            self.objects.line1.Size = newUDim2(xScale, 0, 0, 1)
+                            self.objects.line2.Size = newUDim2(xScale, 0, 0, 1)
+                            self.objects.line1.Position = newUDim2(0,1,.5,-1)
+                            self.objects.line2.Position = newUDim2(1 - self.objects.line2.Size.X.Scale,-1,.5,-1)
+                        end
+                    end
+
+                    separator:SetText(separator.text);
+                    self:UpdateOptions();
+                    return separator
+                end
+
+                -- // Color Picker
+                function section:AddColor(data)
+                    local color = {
+                        class = 'color';
+                        flag = data.flag;
+                        text = '';
+                        tooltip = '';
+                        order = #self.options+1;
+                        callback = function() end;
+                        color = Color3.new(1,1,1);
+                        trans = 0;
+                        open = false;
+                        enabled = true;
+                        risky = false;
+                        objects = {};
+                    };
+
+                    local blacklist = {'objects'};
+                    for i,v in next, data do
+                        if not table.find(blacklist, i) and color[i] ~= nil then
+                            color[i] = v
+                        end
+                    end
+                    
+                    table.insert(self.options, color)
+
+                    if color.flag then
+                        library.flags[color.flag] = color.color;
+                        library.options[color.flag] = color;
+                    end
+
+                    --- Create Objects ---
+                    do
+                        local objs = color.objects;
+                        local z = library.zindexOrder.window+25;
+
+                        objs.holder = utility:Draw('Square', {
+                            Size = newUDim2(1,0,0,19);
+                            Transparency = 0;
+                            ZIndex = z+5;
+                            Parent = section.objects.optionholder;
+                        })
+
+                        objs.background = utility:Draw('Square', {
+                            Size = newUDim2(0,15,0,8);
+                            Position = newUDim2(1,-16,0,5);
+                            ZIndex = z+3;
+                            Parent = objs.holder;
+                        })
+
+                        objs.gradient = utility:Draw('Image', {
+                            Size = newUDim2(1,0,1,0);
+                            Data = library.images.gradientp45;
+                            Transparency = .25;
+                            ZIndex = z+4;
+                            Parent = objs.background;
+                        })
+
+                        objs.border1 = utility:Draw('Square', {
+                            Size = newUDim2(1,2,1,2);
+                            Position = newUDim2(0,-1,0,-1);
+                            ThemeColor = 'Option Border 1';
+                            ZIndex = z+2;
+                            Parent = objs.background;
+                        })
+
+                        objs.border2 = utility:Draw('Square', {
+                            Size = newUDim2(1,2,1,2);
+                            Position = newUDim2(0,-1,0,-1);
+                            ThemeColor = 'Option Border 2';
+                            ZIndex = z+1;
+                            Parent = objs.border1;
+                        })
+
+                        objs.text = utility:Draw('Text', {
+                            Position = newUDim2(0,2,0,2);
+                            ThemeColor = color.risky and 'Risky Text Enabled' or 'Option Text 3';
+                            Size = 13;
+                            Font = 2;
+                            ZIndex = z+1;
+                            Outline = true;
+                            Parent = objs.holder;
+                        })
+
+                        utility:Connection(objs.holder.MouseEnter, function()
+                            objs.border1.ThemeColor = 'Accent';
+                        end)
+
+                        utility:Connection(objs.holder.MouseLeave, function()
+                            objs.border1.ThemeColor = color.state and 'Accent' or 'Option Border 1';
+                        end)
+
+                        utility:Connection(objs.holder.MouseButton1Down, function()
+                            color:SetOpen(not color.open);
+                        end)
+
+                    end
+                    ----------------------
+
+                    function color:SetText(str)
+                        if typeof(str) == 'string' then
+                            self.text = str;
+                            self.objects.text.Text = str;
+                        end
+                    end
+
+                    function color:SetColor(c3, nocallback)
+                        if typeof(c3) == 'Color3' then
+                            local h,s,v = c3:ToHSV(); c3 = fromhsv(h, clamp(s,.005,.995), clamp(v,.005,.995));
+                            self.color = c3;
+                            self.objects.background.Color = c3;
+                            if not nocallback then
+                                self.callback(c3, self.trans);
+                            end
+                            if self.open then
+                                window.colorpicker:Visualize(self.color, self.trans);
+                            end
+                            if self.flag then
+                                library.flags[self.flag] = c3;
+                            end
+                        end
+                    end
+
+                    function color:SetTrans(trans, nocallback)
+                        if typeof(trans) == 'number' then
+                            self.trans = trans;
+                            if not nocallback then
+                                self.callback(self.color, trans);
+                            end
+                            if self.open then
+                                window.colorpicker:Visualize(self.color, self.trans);
+                            end
+                        end
+                    end
+
+                    function color:SetOpen(bool)
+                        if typeof(bool) == 'boolean' then
+                            self.open = bool
+                            if bool then
+                                if window.colorpicker.selected then
+                                    window.colorpicker.selected.open = false;
+                                end
+                                window.colorpicker.selected = color
+                                window.colorpicker.objects.background.Parent = self.objects.background;
+                                window.colorpicker.objects.background.Visible = true;
+                                window.colorpicker:Visualize(color.color, color.trans)
+                            elseif window.colorpicker.selected == color then
+                                window.colorpicker.selected = nil;
+                                window.colorpicker.objects.background.Parent = window.objects.background;
+                                window.colorpicker.objects.background.Visible = false;
+                            end
+                        end
+                    end
+
+                    tooltip(color);
+                    color:SetText(color.text);
+                    color:SetColor(color.color, true);
+                    color:SetTrans(color.trans, true);
+                    self:UpdateOptions();
+                    return color
+                end
+
+                -- // Text Box
+                function section:AddBox(data)
+                    local box = {
+                        class = 'box';
+                        flag = data.flag;
+                        text = '';
+                        input = '';
+                        order = #self.options+1;
+                        callback = function() end;
+                        enabled = true;
+                        focused = false;
+                        risky = false;
+                        objects = {};
+                    };
+
+                    local blacklist = {'objects', 'dragging'};
+                    for i,v in next, data do
+                        if not table.find(blacklist, i) and box[i] ~= nil then
+                            box[i] = v;
+                        end
+                    end
+                    
+                    table.insert(self.options, box)
+
+                    if box.flag then
+                        library.flags[box.flag] = box.input;
+                        library.options[box.flag] = box;
+                    end
+
+                    --- Create Objects ---
+                    do
+                        local objs = box.objects;
+                        local z = library.zindexOrder.window+25;
+
+                        objs.holder = utility:Draw('Square', {
+                            Size = newUDim2(1,0,0,37);
+                            Transparency = 0;
+                            ZIndex = z+4;
+                            Parent = section.objects.optionholder;
+                        })
+
+                        objs.background = utility:Draw('Square', {
+                            Size = newUDim2(1,-4,0,15);
+                            Position = newUDim2(0,2,1,-17);
+                            ThemeColor = 'Option Background';
+                            ZIndex = z+2;
+                            Parent = objs.holder;
+                        })
+
+                        objs.border1 = utility:Draw('Square', {
+                            Size = newUDim2(1,2,1,2);
+                            Position = newUDim2(0,-1,0,-1);
+                            ThemeColor = 'Option Border 1';
+                            ZIndex = z+1;
+                            Parent = objs.background;
+                        })
+
+                        objs.border2 = utility:Draw('Square', {
+                            Size = newUDim2(1,2,1,2);
+                            Position = newUDim2(0,-1,0,-1);
+                            ThemeColor = 'Option Border 2';
+                            ZIndex = z;
+                            Parent = objs.border1;
+                        })
+
+                        objs.gradient = utility:Draw('Image', {
+                            Size = newUDim2(1,0,1,0);
+                            Data = library.images.gradientp90;
+                            Transparency = .65;
+                            ZIndex = z+4;
+                            Parent = objs.background;
+                        })
+
+                        objs.text = utility:Draw('Text', {
+                            Position = newUDim2(0,2,0,2);
+                            ThemeColor = box.risky and 'Risky Text Enabled' or 'Option Text 2';
+                            Size = 13;
+                            Font = 2;
+                            ZIndex = z+1;
+                            Outline = true;
+                            Parent = objs.holder;
+                        })
+
+                        objs.inputText = utility:Draw('Text', {
+                            Position = newUDim2(0,2,0,0);
+                            ThemeColor = 'Option Text 2';
+                            Size = 13;
+                            Font = 2;
+                            ZIndex = z+5;
+                            Outline = true;
+                            Parent = objs.background;
+                        })
+
+                        utility:Connection(objs.holder.MouseEnter, function()
+                            objs.border1.ThemeColor = 'Accent';
+                        end)
+
+                        utility:Connection(objs.holder.MouseLeave, function()
+                            objs.border1.ThemeColor = 'Option Border 1';
+                        end)
+
+                        utility:Connection(objs.holder.MouseButton1Down, function()
+                            if box.focused then
+                                box:ReleaseFocus();
+                                actionservice:UnbindAction('FreezeMovement');
+                            else
+                                actionservice:BindAction(
+                                    'FreezeMovement',
+                                    function()
+                                        return Enum.ContextActionResult.Sink
+                                    end,
+                                    false,
+                                    unpack(Enum.PlayerActions:GetEnumItems())
+                                )
+                                box:CaptureFocus(inputservice:IsKeyDown(Enum.KeyCode.LeftControl));
+                                if inputservice:IsKeyDown(Enum.KeyCode.LeftControl) then
+                                    objs.inputText.Text = '';
+                                end
+                            end
+                        end)
+
+                    end
+                    ----------------------
+
+                    function box:SetText(str)
+                        if typeof(str) == 'string' then
+                            self.text = str;
+                            self.objects.text.Text = str;
+                        end
+                    end
+
+                    function box:SetInput(str, nocallback)
+                        if typeof(str) == 'string' then
+                            self.input = str;
+                            self.objects.inputText.Text = str;
+                            if not nocallback then
+                                self.callback(str);
+                            end
+                            if self.flag then
+                                library.flags[self.flag] = str;
+                            end
+                        end
+                    end
+
+                    local c
+                    local input = box.input;
+                    function box:CaptureFocus(clear)
+                        box.focused = true
+
+                        if clear then
+                            input = '';
+                        end
+
+                        self.objects.inputText.ThemeColor = 'Option Text 1';
+                        c = utility:Connection(inputservice.InputBegan, function(inp)
+                            if inp.KeyCode == Enum.KeyCode.Return or inp.UserInputType == Enum.UserInputType.MouseButton1 then
+                                box:ReleaseFocus(true);
+                            elseif inp.KeyCode == Enum.KeyCode.Escape then
+                                input = self.input
+                                self.objects.inputText.Text = input;
+                                box:ReleaseFocus();
+                            elseif inp.KeyCode == Enum.KeyCode.Backspace then
+                                input = input:sub(1,-2);
+                                self.objects.inputText.Text = input;
+                            elseif #inp.KeyCode.Name == 1 or table.find(whitelistedBoxKeys, inp.KeyCode) or inp.KeyCode.Name == 'Space' or inp.KeyCode.Name == 'Minus' or inp.KeyCode.Name == 'Equals' or inp.KeyCode.Name == 'Backquote' then
+                                local wlIdx = table.find(whitelistedBoxKeys, inp.KeyCode)
+                                local keyString = inp.KeyCode.Name == 'Space' and ' ' or inp.KeyCode.Name == 'Minus' and '_' or inp.KeyCode.Name == 'Equals' and '+' or inp.KeyCode.Name == 'Backquote' and '~' or wlIdx ~= nil and tostring(wlIdx-1) or inp.KeyCode.Name
+                                if not (inputservice:IsKeyDown(Enum.KeyCode.LeftShift) and not inputservice:IsKeyDown(Enum.KeyCode.RightShift)) then
+                                    keyString = keyString:lower();
+                                    if inp.KeyCode.Name == 'Minus' then
+                                        keyString = '-'
+                                    elseif inp.KeyCode.Name == 'Equals' then
+                                        keyString = '='
+                                    elseif inp.KeyCode.Name == 'Backquote' then
+                                        keyString = '`'
+                                    end
+                                else
+                                    if keyString == '1' then
+                                        keyString = '!'
+                                    elseif keyString == '2' then
+                                        keyString = '@'
+                                    elseif keyString == '3' then
+                                        keyString = '#'
+                                    elseif keyString == '4' then
+                                        keyString = '$'
+                                    elseif keyString == '5' then
+                                        keyString = '%'
+                                    elseif keyString == '6' then
+                                        keyString = '^'
+                                    elseif keyString == '7' then
+                                        keyString = '&'
+                                    elseif keyString == '8' then
+                                        keyString = '*'
+                                    elseif keyString == '9' then
+                                        keyString = '('
+                                    elseif keyString == '0' then
+                                        keyString = ')'
+                                    end
+                                end
+                                input = input..keyString;
+                                self.objects.inputText.Text = input;
+                            end
+                        end)
+
+                    end
+
+                    function box:ReleaseFocus(apply)
+                        box.focused = false;
+                        self.objects.inputText.ThemeColor = 'Option Text 2';
+                        if apply then
+                            box:SetInput(input);
+                        end
+                        c:Disconnect();
+                    end
+
+                    tooltip(box);
+                    box:SetText(box.text);
+                    box:SetInput(box.input, true);
+                    self:UpdateOptions();
+                    return box
+                end
+
+                -- // Keybind
+                function section:AddBind(data)
+                    local bind = {
+                        class = 'bind';
+                        flag = data.flag;
+                        text = '';
+                        tooltip = '';
+                        bind = 'none';
+                        mode = 'toggle';
+                        order = #self.options+1;
+                        callback = function() end;
+                        keycallback = function() end;
+                        indicatorValue = library.keyIndicator:AddValue({value = 'value', key = 'key', enabled = false});
+                        noindicator = false;
+                        state = false;
+                        nomouse = false;
+                        enabled = true;
+                        binding = false;
+                        risky = false;
+                        objects = {};
+                    };
+
+                    local blacklist = {'objects'};
+                    for i,v in next, data do
+                        if not table.find(blacklist, i) and bind[i] ~= nil then
+                            bind[i] = v
+                        end
+                    end
+                    
+                    table.insert(self.options, bind)
+
+                    if bind.flag then
+                        library.options[bind.flag] = bind;
+                    end
+
+                    --- Create Objects ---
+                    do
+                        local objs = bind.objects;
+                        local z = library.zindexOrder.window+25;
+
+                        objs.holder = utility:Draw('Square', {
+                            Size = newUDim2(1,0,0,19);
+                            Transparency = 0;
+                            ZIndex = z+5;
+                            Parent = section.objects.optionholder;
+                        })
+
+                        objs.text = utility:Draw('Text', {
+                            Position = newUDim2(0,2,0,2);
+                            ThemeColor = bind.risky and 'Risky Text' or 'Option Text 2';
+                            Size = 13;
+                            Font = 2;
+                            ZIndex = z+1;
+                            Outline = true;
+                            Parent = objs.holder;
+                        })
+
+                        objs.keyText = utility:Draw('Text', {
+                            ThemeColor = 'Option Text 3';
+                            Size = 13;
+                            Font = 2;
+                            ZIndex = z+1;
+                            Parent = objs.holder;
+                        })
+
+                        utility:Connection(objs.holder.MouseEnter, function()
+                            objs.keyText.ThemeColor = 'Accent';
+                        end)
+
+                        utility:Connection(objs.holder.MouseLeave, function()
+                            objs.keyText.ThemeColor = bind.binding and 'Accent' or 'Option Text 3';
+                        end)
+
+                        utility:Connection(objs.holder.MouseButton1Down, function()
+                            if not bind.binding then
+                                bind:SetKeyText('...');
+                                bind.binding = true;
+                            end
+                        end)
+
+                    end
+                    ----------------------
+
+                    local c
+
+                    function bind:SetText(str)
+                        if typeof(str) == 'string' then
+                            self.text = str;
+                            self.objects.text.Text = str;
+                            self.indicatorValue:SetKey(str);
+                        end
+                    end
+
+                    function bind:SetBind(keybind)
+                        if c then
+                            c:Disconnect();
+                            if bind.flag then
+                                library.flags[bind.flag] = false;
+                            end
+                            bind.callback(false);
+                        end
+                        local keyName = 'NONE'
+                        self.bind = (keybind and keybind) or keybind or self.bind
+                        if self.bind == Enum.KeyCode.Backspace then
+                            self.bind = 'none';
+                        else
+                            keyName = keyNames[keybind] or keybind.Name or keybind
+                        end
+                        self.keycallback(self.bind);
+                        self:SetKeyText(keyName:upper());
+                        self.indicatorValue:SetKey((self.text == nil or self.text == '') and (self.flag == nil and 'unknown' or self.flag) or self.text); -- this is so dumb
+                        self.indicatorValue:SetValue('['..keyName:upper()..']');
+                        self.objects.keyText.ThemeColor = self.objects.holder.Hover and 'Accent' or 'Option Text 3';
+                    end
+
+                    function bind:SetKeyText(str)
+                        str = tostring(str);
+                        self.objects.keyText.Text = '['..str..']';
+                        self.objects.keyText.Position = newUDim2(1,-self.objects.keyText.TextBounds.X, 0, 2);
+                    end
+
+                    utility:Connection(inputservice.InputBegan, function(inp)
+                        if inputservice:GetFocusedTextBox() then
+                            return
+                        elseif bind.binding then
+                            local key = (table.find({Enum.UserInputType.MouseButton1, Enum.UserInputType.MouseButton2, Enum.UserInputType.MouseButton3}, inp.UserInputType) and not bind.nomouse) and inp.UserInputType
+                            bind:SetBind(key or (not table.find(blacklistedKeys, inp.KeyCode)) and inp.KeyCode)
+                            bind.binding = false
+                        elseif not bind.binding and self.bind == 'none' then
+                            bind.state = true
+                            library.flags[bind.flag] = bind.state
+                        elseif (inp.KeyCode == bind.bind or inp.UserInputType == bind.bind) and not bind.binding then
+                            if bind.mode == 'toggle' then
+                                bind.state = not bind.state
+                                if bind.flag then
+                                    library.flags[bind.flag] = bind.state;
+                                end
+                                bind.callback(bind.state)
+                                bind.indicatorValue:SetEnabled(bind.state and not bind.noindicator);
+                            elseif bind.mode == 'hold' then
+                                if bind.flag then
+                                    library.flags[bind.flag] = true;
+                                end
+                                bind.indicatorValue:SetEnabled(true and not bind.noindicator);
+                                c = utility:Connection(runservice.RenderStepped, function()
+                                    bind.callback(true);
+                                end)
+                            end
+                        end
+                    end)
+
+                    utility:Connection(inputservice.InputEnded, function(inp)
+                        if bind.bind ~= 'none' then
+                            if inp.KeyCode == bind.bind or inp.UserInputType == bind.key then
+                                if c then
+                                    c:Disconnect();
+                                    if bind.flag then
+                                        library.flags[bind.flag] = false;
+                                    end
+                                    bind.callback(false);
+                                    bind.indicatorValue:SetEnabled(false);
+                                end
+                            end
+                        end
+                    end)
+
+                    tooltip(bind);
+                    bind:SetBind(bind.bind);
+                    bind:SetText(bind.text);
+                    self:UpdateOptions();
+                    return bind
+                end
+
+                -- // Dropdown
+                function section:AddList(data)
+                    local list = {
+                        class = 'list';
+                        flag = data.flag;
+                        text = '';
+                        selected = '';
+                        tooltip = '';
+                        order = #self.options+1;
+                        callback = function() end;
+                        enabled = true;
+                        multi = false;
+                        open = false;
+                        risky = false;
+                        values = {};
+                        objects = {};
+                    }
+
+                    table.insert(self.options, list);
+
+                    local blacklist = {'objects'};
+                    for i,v in next, data do
+                        if not table.find(blacklist, i) ~= list[i] ~= nil then
+                            list[i] = v
+                        end
+                    end
+
+                    if list.flag then
+                        library.flags[list.flag] = list.selected;
+                        library.options[list.flag] = list;
+                    end
+
+                    -- Create Objects --
+                    do
+                        local objs = list.objects;
+                        local z = library.zindexOrder.window+25;
+
+                        objs.holder = utility:Draw('Square', {
+                            Size = newUDim2(1,0,0,40);
+                            Transparency = 0;
+                            ZIndex = z+4;
+                            Parent = section.objects.optionholder;
+                        })
+
+                        objs.background = utility:Draw('Square', {
+                            Size = newUDim2(1,-4,0,15);
+                            Position = newUDim2(0,2,1,-19);
+                            ThemeColor = 'Option Background';
+                            ZIndex = z+2;
+                            Parent = objs.holder;
+                        })
+
+                        objs.border1 = utility:Draw('Square', {
+                            Size = newUDim2(1,2,1,2);
+                            Position = newUDim2(0,-1,0,-1);
+                            ThemeColor = 'Option Border 1';
+                            ZIndex = z+1;
+                            Parent = objs.background;
+                        })
+
+                        objs.border2 = utility:Draw('Square', {
+                            Size = newUDim2(1,2,1,2);
+                            Position = newUDim2(0,-1,0,-1);
+                            ThemeColor = 'Option Border 2';
+                            ZIndex = z;
+                            Parent = objs.border1;
+                        })
+
+                        objs.gradient = utility:Draw('Image', {
+                            Size = newUDim2(1,0,1,0);
+                            Data = library.images.gradientp90;
+                            Transparency = .65;
+                            ZIndex = z+4;
+                            Parent = objs.background;
+                        })
+
+                        objs.text = utility:Draw('Text', {
+                            Position = newUDim2(0,2,0,2);
+                            ThemeColor = list.risky and 'Risky Text Enabled' or 'Option Text 2';
+                            Size = 13;
+                            Font = 2;
+                            ZIndex = z+1;
+                            Outline = true;
+                            Parent = objs.holder;
+                        })
+
+                        objs.inputText = utility:Draw('Text', {
+                            Position = newUDim2(0,4,0,0);
+                            ThemeColor = 'Option Text 2';
+                            Text = 'none',
+                            Size = 13;
+                            Font = 2;
+                            ZIndex = z+5;
+                            Outline = true;
+                            Parent = objs.background;
+                        })
+
+                        objs.openText = utility:Draw('Text', {
+                            Position = newUDim2(1,-10,0,0);
+                            ThemeColor = 'Option Text 3';
+                            Text = '+';
+                            Size = 13;
+                            Font = 2;
+                            ZIndex = z+5;
+                            Outline = true;
+                            Parent = objs.background;
+                        })
+
+                        utility:Connection(objs.holder.MouseEnter, function()
+                            objs.border1.ThemeColor = 'Accent';
+                        end)
+
+                        utility:Connection(objs.holder.MouseLeave, function()
+                            objs.border1.ThemeColor = 'Option Border 1';
+                        end)
+
+                        utility:Connection(objs.holder.MouseButton1Down, function()
+                            if list.open then
+                                list.open = false;
+                                objs.openText.Text = '+';
+                                if window.dropdown.selected == list then
+                                    window.dropdown.selected = nil;
+                                    window.dropdown.objects.background.Visible = false;
+                                end
+                            else
+                                if window.dropdown.selected ~= nil then
+                                    window.dropdown.selected.open = false
+                                end
+                                list.open = true;
+                                objs.openText.Text = '-';
+                                window.dropdown.selected = list;
+                                window.dropdown.objects.background.Visible = true;
+                                window.dropdown.objects.background.Parent = objs.holder;
+                                window.dropdown:Refresh();
+                            end
+                        end)
+
+
+                    end
+                    --------------------
+
+                    function list:SetText(str)
+                        if typeof(str) == 'string' then
+                            self.text = str;
+                            self.objects.text.Text = str;
+                        end
+                    end
+
+                    function list:Select(option, nocallback)
+                        option = typeof(option) == 'table' and (self.multi == true and option or (#option == 0 and nil or option[1])) or self.multi == true and {option} or option;
+                        if option ~= nil then
+                            self.selected = option;
+                            local text = typeof(option) == 'table' and (#option == 0 and "none" or table.concat(option, ', ')) or tostring(option);
+                            local label = self.objects.inputText
+                            label.Text = text;
+                            if label.TextBounds.X > self.objects.background.Object.Size.X - 10 then
+                                local split = text:split('');
+                                for i = 1,#split do
+                                    label.Text = table.concat(split, '', 1, i)
+                                    if label.TextBounds.X > self.objects.background.Object.Size.X - 10 then
+                                        label.Text = label.Text:sub(1,-6)..'...';
+                                        break
+                                    end
+                                end
+                            end
+                            if self.flag then
+                                library.flags[self.flag] = self.selected
+                            end
+                            if not nocallback then
+                                self.callback(self.selected);
+                            end
+                        end
+                    end
+
+                    function list:AddValue(value)
+                        table.insert(list.values, tostring(value));
+                        if window.dropdown.selected == list then
+                            window.dropdown:Refresh()
+                        end
+                    end
+
+                    function list:RemoveValue(value)
+                        if table.find(list.values, value) then
+                            table.remove(list.values, table.find(list.values, value));
+                            if window.dropdown.selected == list then
+                                window.dropdown:Refresh()
+                            end
+                        end
+                    end
+
+                    function list:ClearValues()
+                        table.clear(list.values);
+                        if window.dropdown.selected == list then
+                            window.dropdown:Refresh()
+                        end
+                    end
+
+                    tooltip(list);
+                    list:Select((data.value or data.selected) or (list.multi and 'none' or list.values[1]), true);
+                    list:SetText(list.text);
+                    self:UpdateOptions();
+                    return list
+                end
+
+                -- Text
+                function section:AddText(data)
+                    local text = {
+                        class = 'text';
+                        flag = data.flag;
+                        text = '';
+                        tooltip = '';
+                        order = #self.options+1;
+                        enabled = true;
+                        risky = false;
+                        objects = {};
+                    };
+
+                    local blacklist = {'objects'};
+                    for i,v in next, data do
+                        if not table.find(blacklist, i) and text[i] ~= nil then
+                            text[i] = v
+                        end
+                    end
+
+                    if data.flag then
+                        library.options[data.flag] = text;
+                    end
+
+                    table.insert(self.options, text)
+
+                    --- Create Objects ---
+                    do
+                        local objs = text.objects;
+                        local z = library.zindexOrder.window+25;
+
+                        objs.holder = utility:Draw('Square', {
+                            Transparency = 0;
+                            ZIndex = z+5;
+                            Parent = section.objects.optionholder;
+                        })
+
+                        objs.text = utility:Draw('Text', {
+                            Position = newUDim2(0,2,0,2);
+                            ThemeColor = text.risky and 'Risky Text Enabled' or 'Option Text 2';
+                            Size = 13;
+                            Font = 2;
+                            ZIndex = z+1;
+                            Outline = true;
+                            Parent = objs.holder;
+                        })
+                    end
+                    ----------------------
+
+                    function text:SetText(str)
+                        if typeof(str) == 'string' then
+                            self.text = str;
+                            self.objects.text.Text = str;
+                            self.objects.holder.Size = newUDim2(1,0,0,self.objects.text.TextBounds.Y + 6);
+                            section:UpdateOptions();
+                        end
+                    end
+
+                    text:SetText(text.text);
+                    self:UpdateOptions();
+                    return text
+                end
+
+                -----------------------
+
+                section:UpdateOptions();
+                section:SetText(section.text);
+                self:UpdateSections();
+                return section;
+            end
+
+            function tab:UpdateSections()
+                table.sort(self.sections, function(a,b)
+                    return a.order < b.order
+                end)
+
+                local last1,last2;
+                local padding = 15;
+                for _,section in next, self.sections do
+
+                    if section.objects.background.Visible ~= (section.enabled and tab.selected) then
+                        section.objects.background.Visible = section.enabled and tab.selected
+                        section:UpdateOptions();
+                    end
+                    
+                    if section.enabled then
+                        if section.side == 1 then
+                            if last1 then
+                                section.objects.background.Position = last1.objects.background.Position + newUDim2(0,0,0,last1.objects.background.Object.Size.Y + padding);
+                            end
+                            last1 = section;
+                        elseif section.side == 2 then
+                            if last2 then
+                                section.objects.background.Position = last2.objects.background.Position + newUDim2(0,0,0,last2.objects.background.Object.Size.Y + padding);
+                            end
+                            last2 = section;
+                        end
+                    end
+
+                    section:SetText(section.text)
+                    
+                end
+            end
+
+            function tab:SetText(str)
+                if typeof(str) == 'string' then
+                    self.text = str;
+                    self.objects.text.Text = str;
+                    window:UpdateTabs();
+                end
+            end
+
+            function tab:Select()
+                window.selectedTab = tab;
+                window:UpdateTabs();
+                for i,v in next, window.tabs do
+                    if v.callback then
+                        v.callback(v == tab)
                     end
                 end
+            end
+
+            if window.selectedTab == nil then
+                tab:Select();
+            end
+
+            tab:SetText(tab.text);
+            window:UpdateTabs();
+            return tab;
+        end
+
+        function window:UpdateTabs()
+            table.sort(self.tabs, function(a,b)
+                return a.order < b.order
             end)
+            local pos = 0;
+            for i,v in next, self.tabs do
+                local objs = v.objects;
+                v.selected = v == self.selectedTab;
+                objs.background.ThemeColor = v.selected and 'Selected Tab Background' or 'Unselected Tab Background';
+                objs.background.Size = newUDim2(0, objs.text.TextBounds.X + 14, 1, v.selected and 1 or 0);
+                objs.background.Position = newUDim2(0, pos, 0, 0)
+
+                objs.text.ThemeColor = v.selected and 'Selected Tab Text' or 'Unselected Tab Text';
+                objs.text.Position = newUDim2(.5, 0, 0, 3);
+
+                objs.topBorder.ThemeColor = v.selected and 'Accent' or 'Unselected Tab Background';
+
+                pos += objs.background.Size.X.Offset + 1
+
+                v:UpdateSections();
+
+            end
         end
 
-        self:Watermark()
-        self:Notifications()
-        self:Tooltip()
-        self:Keybinds()
-        self:Cursor()
+        window:SetOpen(true);
+        return window;
+    end
 
-        self:Fade()
+    -- Tooltip
+    do
+        local z = library.zindexOrder.window + 2000;
+        tooltipObjects.background = utility:Draw('Square', {
+            ThemeColor = 'Group Background';
+            ZIndex = z;
+            Visible = false;
+        })
 
-        task.wait(0.2)
+        tooltipObjects.border1 = utility:Draw('Square', {
+            Size = UDim2.new(1,2,1,2);
+            Position = UDim2.new(0,-1,0,-1);
+            ThemeColor = 'Border 1';
+            ZIndex = z-1;
+            Parent = tooltipObjects.background;
+        })
 
-        self:SelectTab(self.sshit.name)
+        tooltipObjects.border2 = utility:Draw('Square', {
+            Size = UDim2.new(1,4,1,4);
+            Position = UDim2.new(0,-2,0,-2);
+            ThemeColor = 'Border 3';
+            ZIndex = z-2;
+            Parent = tooltipObjects.background;
+        })
 
-        library.loaded = true
+        tooltipObjects.text = utility:Draw('Text', {
+            Position = UDim2.new(0,3,0,0);
+            ThemeColor = 'Primary Text';
+            Size = 13;
+            Font = 2;
+            ZIndex = z+1;
+            Outline = true;
+            Parent = tooltipObjects.background;
+        })
 
-        function self.Unload(self)
-            for i, v in pairs(utility:Combine(library.drawings[1], library.drawings[2])) do
-                v[1]:Remove()
+        tooltipObjects.riskytext = utility:Draw('Text', {
+            Position = UDim2.new(0,3,0,0);
+            ThemeColor = 'Risky Text Enabled';
+            Text = '[RISKY]';
+            Size = 13;
+            Font = 2;
+            ZIndex = z+1;
+            Outline = true;
+            Parent = tooltipObjects.background;
+        })
+
+    end
+    
+    -- Watermark
+    do
+        if not IonHub_User then
+            getgenv().IonHub_User = {
+                UID = 0, 
+                User = "admin"
+            }
+        end
+        self.watermark = {
+            objects = {};
+            text = {
+                {self.cheatname, true},
+                {"Private", true},
+                {self.gamename, true},
+                {'0 fps', true},
+                {'0ms', true},
+                {'00:00:00', true},
+                {'M, D, Y', true},
+            };
+            lock = 'custom';
+            position = newUDim2(0,0,0,0);
+            refreshrate = 25;
+        }
+
+        function self.watermark:Update()
+            self.objects.background.Visible = library.flags.watermark_enabled
+            if library.flags.watermark_enabled then
+                local date = {os.date('%b',os.time()), os.date('%d',os.time()), os.date('%Y',os.time())}
+                local daySuffix = math.floor(date[2]%10)
+                date[2] = date[2]..(daySuffix == 1 and 'st' or daySuffix == 2 and 'nd' or daySuffix == 3 and 'rd' or 'th')
+
+                self.text[4][1] = library.stats.fps..' fps'
+                self.text[5][1] = floor(library.stats.ping)..'ms'
+                self.text[6][1] = os.date('%X', os.time())
+                self.text[7][1] = table.concat(date, ', ')
+
+                local text = {};
+                for _,v in next, self.text do
+                    if v[2] then
+                        table.insert(text, v[1]);
+                    end
+                end
+
+                self.objects.text.Text = table.concat(text,' | ')
+                self.objects.background.Size = newUDim2(0, self.objects.text.TextBounds.X + 10, 0, 17)
+
+                local size = self.objects.background.Object.Size;
+                local screensize = workspace.CurrentCamera.ViewportSize;
+
+                self.position = (
+                    self.lock == 'Top Right' and newUDim2(0, screensize.X - size.X - 15, 0, 15) or
+                    self.lock == 'Top Left' and newUDim2(0, 15, 0, 15) or
+                    self.lock == 'Bottom Right' and newUDim2(0, screensize.X - size.X - 15, 0, screensize.Y - size.Y - 15) or
+                    self.lock == 'Bottom Left' and newUDim2(0, 15, 0, screensize.Y - size.Y - 15) or
+                    self.lock == 'Top' and newUDim2(0, screensize.X / 2 - size.X / 2, 0, 15) or
+                    newUDim2(library.flags.watermark_x / 100, 0, library.flags.watermark_y / 100, 0)
+                )
+
+                self.objects.background.Position = self.position
             end
+        end
 
-            for i, v in pairs(library.connections) do
-                v:Disconnect()
-            end
+        do
+            local objs = self.watermark.objects;
+            local z = self.zindexOrder.watermark;
+            
+            objs.background = utility:Draw('Square', {
+                Visible = false;
+                Size = newUDim2(0, 200, 0, 17);
+                Position = newUDim2(0,800,0,100);
+                ThemeColor = 'Background';
+                ZIndex = z;
+            })
 
-            for i, v in pairs(self.connections["unload"] or {}) do
-                v()
-            end
+            objs.border1 = utility:Draw('Square', {
+                Size = newUDim2(1,2,1,2);
+                Position = newUDim2(0,-1,0,-1);
+                ThemeColor = 'Border 2';
+                Parent = objs.background;
+                ZIndex = z-1;
+            })
 
-            library.loaded = false
+            objs.border2 = utility:Draw('Square', {
+                Size = newUDim2(1,2,1,2);
+                Position = newUDim2(0,-1,0,-1);
+                ThemeColor = 'Border 3';
+                Parent = objs.border1;
+                ZIndex = z-2;
+            })
+            
+            objs.topbar = utility:Draw('Square', {
+                Size = newUDim2(1,0,0,1);
+                ThemeColor = 'Accent';
+                ZIndex = z+1;
+                Parent = objs.background;
+            })
+
+            objs.text = utility:Draw('Text', {
+                Position = newUDim2(.5,0,0,2);
+                ThemeColor = 'Primary Text';
+                Text = 'Watermark Text';
+                Size = 13;
+                Font = 2;
+                ZIndex = z+1;
+                Outline = true;
+                Center = true;
+                Parent = objs.background;
+            })
+
         end
     end
 
-    function window.Connect(self, info)
-        info = info or {}
+    local lasttick = tick();
+    utility:Connection(runservice.RenderStepped, function(step)
+        library.stats.fps = floor(1/step)
+        library.stats.ping = stats.Network.ServerStatsItem["Data Ping"]:GetValue()
+        library.stats.sendkbps = stats.DataSendKbps
+        library.stats.receivekbps = stats.DataReceiveKbps
 
-        local connection = info.con or "tab"
-        local callback = info.callback or function() end
-
-        if not self.connections[connection] then
-            self.connections[connection] = {}
+        if (tick()-lasttick)*1000 > library.watermark.refreshrate then
+            lasttick = tick()
+            library.watermark:Update()
         end
+    end)
 
-        table.insert(self.connections[connection], callback)
-    end
+    self.keyIndicator = self.NewIndicator({title = 'Keybinds', pos = newUDim2(0,15,0,325), enabled = true});
+    
+    self.targetIndicator = self.NewIndicator({title = 'Target Info', pos = newUDim2(0,15,0,350), enabled = false});
+    self.targetName = self.targetIndicator:AddValue({key = 'Name     :', value = 'nil'})
+    self.targetDisplay = self.targetIndicator:AddValue({key = 'DName    :', value = 'nil'})
+    self.targetHealth = self.targetIndicator:AddValue({key = 'Health   :', value = '0'})
+    self.targetDistance = self.targetIndicator:AddValue({key = 'Distance :', value = '0m'})
+    self.targetTool = self.targetIndicator:AddValue({key = 'Weapon   :', value = 'nil'})
 
-    return window
+    self:SetTheme(library.theme);
+    self:SetOpen(true);
+    self.hasInit = true
+
 end
 
-return library, utility
+function library:CreateSettingsTab(menu)
+    local settingsTab = menu:AddTab('  Settings  ', 999);
+    local configSection = settingsTab:AddSection('Config', 1);
+    local mainSection = settingsTab:AddSection('Main', 1);
+
+    configSection:AddBox({text = 'Config Name', flag = 'configinput'})
+    configSection:AddList({text = 'Config', flag = 'selectedconfig'})
+
+    local function refreshConfigs()
+        library.options.selectedconfig:ClearValues();
+        for _,v in next, listfiles(self.cheatname..'/'..self.gamename..'/configs') do
+            local ext = '.'..v:split('.')[#v:split('.')];
+            if ext == self.fileext then
+                library.options.selectedconfig:AddValue(v:split('\\')[#v:split('\\')]:sub(1,-#ext-1))
+            end
+        end
+    end
+
+    configSection:AddButton({text = 'Load', confirm = true, callback = function()
+        library:LoadConfig(library.flags.selectedconfig);
+    end}):AddButton({text = 'Save', confirm = true, callback = function()
+        library:SaveConfig(library.flags.selectedconfig);
+    end})
+
+    configSection:AddButton({text = 'Create', confirm = true, callback = function()
+        if library:GetConfig(library.flags.configinput) then
+            library:SendNotification('Config \''..library.flags.configinput..'\' already exists.', 5, c3new(1,0,0));
+            return
+        end
+        writefile(self.cheatname..'/'..self.gamename..'/configs/'..library.flags.configinput.. self.fileext, http:JSONEncode({}));
+        refreshConfigs()
+    end}):AddButton({text = 'Delete', confirm = true, callback = function()
+        if library:GetConfig(library.flags.selectedconfig) then
+            delfile(self.cheatname..'/'..self.gamename..'/configs/'..library.flags.selectedconfig.. self.fileext);
+            refreshConfigs()
+        end
+    end})
+
+    refreshConfigs()
+
+    mainSection:AddBind({text = 'Open / Close', flag = 'togglebind', nomouse = true, noindicator = true, bind = Enum.KeyCode.End, callback = function()
+        library:SetOpen(not library.open)
+    end});
+
+    mainSection:AddButton({text = 'Join Discord', flag = 'joindiscord', confirm = true, callback = function()
+        local res = syn.request({
+            Url = 'https://discord.gg/rkRW5VrbWu',
+            Method = 'POST',
+            Headers = {
+                ['Content-Type'] = 'application/json',
+                Origin = 'https://discord.com'
+            },
+            Body = game:GetService('HttpService'):JSONEncode({
+                cmd = 'INVITE_BROWSER',
+                nonce = game:GetService('HttpService'):GenerateGUID(false),
+                args = {code = 'rkRW5VrbWu'}
+            })
+        })
+        if res.Success then
+            library:SendNotification(library.cheatname..' | Joined Discord', 3);
+        end
+    end})
+
+    mainSection:AddButton({text = 'Rejoin Server', confirm = true, callback = function()
+        game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, game.JobId);
+    end})
+
+    mainSection:AddButton({text = 'Rejoin Game', confirm = true, callback = function()
+        game:GetService("TeleportService"):Teleport(game.PlaceId);
+    end})
+
+    mainSection:AddButton({text = 'Copy Join Script', callback = function()
+        setclipboard(([[game:GetService("TeleportService"):TeleportToPlaceInstance(%s, "%s")]]):format(game.PlaceId, game.JobId))
+    end})
+
+    mainSection:AddButton({text = "Unload", confirm = true,
+       callback = function(bool)
+           if bool then
+               library:Unload() 
+           else
+               library:Unload() 
+           end
+       end})
+
+    mainSection:AddSeparator({text = 'Indicators'});
+
+    mainSection:AddToggle({text = 'Watermark', flag = 'watermark_enabled', state = true,});
+
+    mainSection:AddSlider({text = 'Custom X', flag = 'watermark_x', suffix = '%', min = 0, max = 100, increment = .1, value = 6});
+    mainSection:AddSlider({text = 'Custom Y', flag = 'watermark_y', suffix = '%', min = 0, max = 100, increment = .1, value = 1});
+
+    mainSection:AddToggle({text = 'Keybinds', flag = 'keybind_indicator', state = true, callback = function(bool)
+        library.keyIndicator:SetEnabled(bool);
+    end})
+    mainSection:AddSlider({text = 'Position X', flag = 'keybind_indicator_x', min = 0, max = 100, increment = .1, value = .5, callback = function()
+        library.keyIndicator:SetPosition(newUDim2(library.flags.keybind_indicator_x / 100, 0, library.flags.keybind_indicator_y / 100, 0));    
+    end});
+    mainSection:AddSlider({text = 'Position Y', flag = 'keybind_indicator_y', min = 0, max = 100, increment = .1, value = 30, callback = function()
+        library.keyIndicator:SetPosition(newUDim2(library.flags.keybind_indicator_x / 100, 0, library.flags.keybind_indicator_y / 100, 0));    
+    end});
+
+
+
+    local themeStrings = {"Custom"};
+    for _,v in next, library.themes do
+        table.insert(themeStrings, v.name)
+    end
+    local themeSection = settingsTab:AddSection('Custom Theme', 2);
+    local setByPreset = false
+themeSection:AddList({text = 'Presets', flag = 'preset_theme', values = themeStrings, callback = function(newTheme)
+        if newTheme == "Custom" then return end
+        setByPreset = true
+        for _,v in next, library.themes do
+            if v.name == newTheme then
+                for x, d in pairs(library.options) do
+                    if v.theme[tostring(x)] ~= nil then
+                        d:SetColor(v.theme[tostring(x)])
+                    end
+                end
+                library:SetTheme(v.theme)
+                break
+            end
+        end
+        setByPreset = false
+    end}):Select('Default');
+
+    for i, v in pairs(library.theme) do
+        themeSection:AddColor({text = i, flag = i, color = library.theme[i], callback = function(c3)
+            library.theme[i] = c3
+            library:SetTheme(library.theme)
+            if not setByPreset and not setByConfig then 
+                library.options.preset_theme:Select('Custom')
+            end
+        end});
+    end
+
+    return settingsTab;
+end
+
+getgenv().library = library
+return library
